@@ -13,17 +13,12 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.image.BufferedImage;
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Scanner;
 import javax.imageio.ImageIO;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -44,8 +39,7 @@ class DrinkMenu {
 	JPanel imageContainer;
 	JLabel imgLabel;
 	JTextField search;
-	private String SAVE_DIR = "Menu_drink";
-	File pricesfile = new File("prices.txt");
+	private final String SAVE_DIR = "Menu_drink";
 	String text;
 	String money;
 	Double price;
@@ -75,7 +69,7 @@ class DrinkMenu {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				
-				search(); //Method for searching in food menu! 
+				search(); //Method for searching in the drink menu! 
 				
 			}
 		});
@@ -105,7 +99,7 @@ class DrinkMenu {
 	
 		//The Window
 		drinkframe = new JFrame();
-		drinkframe.setTitle("Food-menu");
+		drinkframe.setTitle("Drink-menu");
 		drinkframe.setSize(800,800);
 		drinkframe.setResizable(false);
 		drinkframe.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);    
@@ -126,7 +120,7 @@ class DrinkMenu {
 		if (result == JFileChooser.APPROVE_OPTION) { //If the user selects an image, and clicks OK!
 			
 			File file = filechooser.getSelectedFile();
-			text = JOptionPane.showInputDialog("Въведете име на ястието");
+			text = JOptionPane.showInputDialog("Въведете име на питието");
 			money = JOptionPane.showInputDialog("Въведете цена");
 			
 			dataPrice(text,money);
@@ -270,7 +264,7 @@ private void deldataPrice(File file) {
 			}
 			
 			else {
-				System.out.println("Not found");
+				JOptionPane.showMessageDialog(drinkframe, "Не е намерено!", "Грешка", JOptionPane.OK_OPTION);
 			}
 		}
 	}
@@ -377,6 +371,14 @@ private void deldataPrice(File file) {
 		orderFood(); //Method for ordering for the food menu, by clicking the image of the meal!
 	}
 }
+
+
+
+	
+
+	
+
+
 
 
 
