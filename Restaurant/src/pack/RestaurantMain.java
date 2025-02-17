@@ -1,6 +1,5 @@
 package pack;
 
-
 import java.awt.CardLayout;
 import java.awt.Color;
 import java.awt.Cursor;
@@ -18,7 +17,7 @@ import javax.swing.JTextField;
 
 public class RestaurantMain {
 	
-	JFrame frame = new JFrame(); //Creating the main window
+	static JFrame frame = new JFrame(); //Creating the main window
 	ImageIcon logo;
 	ImageIcon menufr;
 	ImageIcon img_food1; 
@@ -27,6 +26,8 @@ public class RestaurantMain {
 	ImageIcon img_drinks2;
 	ImageIcon img_waiter1;
 	ImageIcon img_waiter2;
+	ImageIcon img_addtable1;
+	ImageIcon img_addtable2;
 	static Font font;
 	static JTextField username;
 	static JTextField password;
@@ -41,6 +42,7 @@ public class RestaurantMain {
 	JLabel label_user;
 	JLabel label_pass;
 	JLabel menuframe;
+	JButton label_addtable;
 	public static JPanel cardPanel = new JPanel(new CardLayout());
 	
 	RestaurantMain() {
@@ -64,10 +66,13 @@ public class RestaurantMain {
 		img_drinks2= new ImageIcon("drinks2.png");
 		img_waiter1 = new ImageIcon("waiter1.png");
 		img_waiter2 = new ImageIcon("waiter2.png");
+		img_addtable1 = new ImageIcon("iconaddtable1.png");
+		img_addtable2 = new ImageIcon("iconaddtable2.png");
 		menufr = new ImageIcon("menuframe.png");
 		FoodIcon = new JButton();
 		DrinkIcon = new JButton();
 		WaiterIcon = new JButton();
+		label_addtable = new JButton();
 		font = new Font("Calibri", Font.PLAIN , 30);
 		//...............................//
 		
@@ -138,7 +143,15 @@ public class RestaurantMain {
 		WaiterIcon.addMouseListener(click_WaiterIcon);
 		WaiterIcon.setCursor(new Cursor(Cursor.HAND_CURSOR));
 		
+		label_addtable.setIcon(img_addtable1);
+		label_addtable.setBorderPainted(false);
+		label_addtable.setBounds(1400, 900, 70, 70);
+		label_addtable.setContentAreaFilled(false);
+		label_addtable.addMouseListener(click_tableicon);
+		label_addtable.setCursor(new Cursor(Cursor.HAND_CURSOR));
+		
 		Homepanel = new JPanel();
+		Homepanel.add(label_addtable);
 		Homepanel.add(WaiterIcon);
 		Homepanel.add(DrinkIcon);
 		Homepanel.add(FoodIcon);
@@ -146,11 +159,11 @@ public class RestaurantMain {
 		Homepanel.add(panel1);
 		Homepanel.add(panel_login);
 		Homepanel.add(logoframe);
-		Homepanel.setLayout(null);
+        Homepanel.setLayout(null);
 		Homepanel.setBackground(Color.WHITE);
 		
 		cardPanel.add(Homepanel);
-		cardPanel.add(Role.Bosspanel);
+		cardPanel.add(Role.Profilepanel);
 		
 		//The Window
 		frame.setTitle("Table Reserved");
@@ -168,7 +181,7 @@ public class RestaurantMain {
 
 		@Override
 		public void mouseClicked(MouseEvent e) {
-			// TODO Auto-generated method stub
+			new FoodMenu();
 			
 		}
 
@@ -202,7 +215,7 @@ public class RestaurantMain {
 
 		@Override
 		public void mouseClicked(MouseEvent e) {
-			// TODO Auto-generated method stub
+			new DrinkMenu();
 			
 		}
 
@@ -264,6 +277,50 @@ public class RestaurantMain {
 			
 		}
 	
+	};
+	
+	MouseListener click_tableicon = new MouseListener() {
+
+		@Override
+		public void mouseClicked(MouseEvent e) {
+			
+			if (Role.flagtable == 1) {
+				
+				ReserveTable.addtable();
+				
+				Role.displaytables();
+			    Role.imagePanel.revalidate();
+			    Role.imagePanel.repaint();
+			    Role.scroll.revalidate();
+			    Role.scroll.repaint();
+			}
+			
+		}
+
+		@Override
+		public void mousePressed(MouseEvent e) {
+			// TODO Auto-generated method stub
+			
+		}
+
+		@Override
+		public void mouseReleased(MouseEvent e) {
+			// TODO Auto-generated method stub
+			
+		}
+
+		@Override
+		public void mouseEntered(MouseEvent e) {
+			label_addtable.setIcon(img_addtable2);
+			
+		}
+
+		@Override
+		public void mouseExited(MouseEvent e) {
+			label_addtable.setIcon(img_addtable1);
+			
+		}
+		
 	};
 
 	public static void switch_the_scene() {
