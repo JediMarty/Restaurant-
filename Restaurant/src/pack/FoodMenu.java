@@ -14,7 +14,6 @@ import java.awt.event.MouseListener;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-import java.security.MessageDigest;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -40,8 +39,7 @@ class FoodMenu {
 	JPanel imageContainer;
 	JLabel imgLabel;
 	JTextField search;
-	private String SAVE_DIR = "Menu_food";
-	File pricesfile = new File("prices.txt");
+	private final String SAVE_DIR = "Menu_food";
 	String text;
 	String money;
 	Double price;
@@ -330,7 +328,7 @@ class FoodMenu {
 			}
 			
 			else {
-				System.out.println("Not found");
+				JOptionPane.showMessageDialog(foodframe, "Не е намерено!", "Грешка", JOptionPane.OK_OPTION);
 			}
 		}
 	}
@@ -440,3 +438,4 @@ class FoodMenu {
 		orderFood(); //Method for ordering for the food menu, by clicking the image of the meal!
 	}
 }
+
