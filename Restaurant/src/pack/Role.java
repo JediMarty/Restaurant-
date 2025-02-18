@@ -4,10 +4,15 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.Font;
+import java.awt.GridLayout;
+import java.awt.Image;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.sql.Connection;
@@ -15,12 +20,14 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-
+import javax.imageio.ImageIO;
+import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 
 class Role {
@@ -29,10 +36,11 @@ class Role {
 	private ResultSet result;
 	String sql;
 	
-	static JPanel Bosspanel = new JPanel();
+	static JPanel Profilepanel = new JPanel();
 	JPanel panel_reg = new JPanel();
 	JPanel panel_boss;
 	JPanel panel_waiter;
+	static JPanel imagePanel;
 	private JLabel fname = new JLabel();
 	private JLabel lname = new JLabel();
 	private JLabel passl = new JLabel();
@@ -46,22 +54,19 @@ class Role {
 	static JTextField pass = new JTextField();
 	static JTextField egn = new JTextField();
 	
-	JButton regbtn = new JButton();
-	
-	JButton FoodIcon;
-	JButton DrinkIcon;
+	JButton regbtn;
 	JButton HomeIcon;
+	
+	static JScrollPane scroll;
 	
 	ImageIcon img_home1;
 	ImageIcon img_home2;
-	ImageIcon img_drinks1;
-	ImageIcon img_drinks2;
-	ImageIcon img_food1;
-	ImageIcon img_food2;
-	
-    String idbcURL = "jdbc:oracle:thin:@localhost:1521:XE";
+
+	String idbcURL = "jdbc:oracle:thin:@localhost:1521:XE";
 	String user = "marti";
 	String password = "marti";
+	
+	static int flagtable = 0;
 	
 	Role() {
 	
@@ -121,7 +126,9 @@ class Role {
 	
 	}
 	
-	public void boss() {
+	void boss() {
+		
+		flagtable = 1;
 		
 		fname.setText("ИМЕ");
 		fname.setFont(new Font("Calibri", Font.BOLD, 30));
@@ -207,7 +214,7 @@ class Role {
 			
 		});
 		
-		Bosspanel.removeAll();
+		Profilepanel.removeAll();
 		
 		panel_boss = new JPanel();
 		JLabel BossName = new JLabel();
@@ -236,14 +243,14 @@ class Role {
 		panel_reg.add(regbtn);
 		panel_reg.setLayout(null);
 		
-		Bosspanel.add(panel_reg);
-		Bosspanel.add(panel_boss);
+		Profilepanel.add(panel_reg);
+		Profilepanel.add(panel_boss);
 		
 	}
 	
-	public void waiter() {
+	void waiter() {
 		
-		Bosspanel.removeAll();
+		Profilepanel.removeAll();
 		
 		panel_waiter = new JPanel();
 		JLabel WaiterName = new JLabel();
@@ -257,11 +264,11 @@ class Role {
 		panel_waiter.add(WaiterName);
 		panel_waiter.setBounds(0, 110, 200, 220);
 		
-		Bosspanel.add(panel_waiter);
+		Profilepanel.add(panel_waiter);
 		
 	}
 	
-	MouseListener click_WaiterIcon = new MouseListener() {
+	MouseListener click_HomeIcon = new MouseListener() {
 
 		@Override
 		public void mouseClicked(MouseEvent e) {
@@ -318,14 +325,68 @@ class Role {
 		HomeIcon.setBorderPainted(false);
 		HomeIcon.setBounds(720, 15, 70, 70);
 		HomeIcon.setContentAreaFilled(false);
-		HomeIcon.addMouseListener(click_WaiterIcon);
+		HomeIcon.addMouseListener(click_HomeIcon);
 		HomeIcon.setCursor(new Cursor(Cursor.HAND_CURSOR));
 		
-		Bosspanel.add(logoframe);
-		Bosspanel.add(HomeIcon);
-		Bosspanel.add(menuframe);
-		Bosspanel.add(panel1);
-	    Bosspanel.setLayout(null);
+		Profilepanel.add(logoframe);
+		Profilepanel.add(HomeIcon);
+		Profilepanel.add(menuframe);
+		Profilepanel.add(panel1);
+	    Profilepanel.setLayout(null);
+	    
+	    displaytables();
+	    
+	}
+	
+	static void displaytables() {
+		
+		final String SAVE_DIR = "Restaurant_tables";
+		File dir = new File(SAVE_DIR);
+		BufferedImage img;
+		int dotIndex;
+		String FileNAME;
+		ImageIcon image;
+		JLabel imgLabel = new JLabel();
+		JPanel imageContainer = new JPanel(); // for the image and the image text
+		imageContainer.setLayout(new BoxLayout(imageContainer, BoxLayout.Y_AXIS)); //Vertical arrangement);
+		imagePanel = new JPanel();
+		imagePanel.setLayout(new GridLayout(0,3,10,10));
+	
+		if (dir.exists()) {
+			for (File file : dir.listFiles() ) {
+				dotIndex = file.getName().lastIndexOf(".");
+				FileNAME = file.getName().substring(0, dotIndex-1);
+						
+				try {
+					img = ImageIO.read(file);
+					image = new ImageIcon(img.getScaledInstance(150, 150, Image.SCALE_SMOOTH));
+					
+					imgLabel = new JLabel();
+					imgLabel.setIcon(image);
+					imgLabel.setText(FileNAME);
+					imgLabel.setHorizontalTextPosition(JLabel.CENTER);
+			        imgLabel.setVerticalTextPosition(JLabel.BOTTOM);
+			        
+					imageContainer.add(imgLabel);
+					imageContainer.setBackground(Color.WHITE);
+				    
+					imagePanel.add(imgLabel);
+				
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				
+			   
+			}
+		}
+		
+		scroll = new JScrollPane(imagePanel);
+		scroll.setBounds(700, 620, 500, 500);
+		
+		RestaurantMain.frame.add(scroll);
+		 
 	}
 	
 }
+
