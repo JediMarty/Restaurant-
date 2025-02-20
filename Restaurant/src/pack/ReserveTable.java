@@ -1,6 +1,8 @@
 package pack;
 
 import java.awt.Font;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -16,9 +18,11 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
 import javax.imageio.ImageIO;
+import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JTextField;
 
 
 class ReserveTable {
@@ -48,21 +52,19 @@ class ReserveTable {
 	
 	static LocalDateTime datetime = LocalDateTime.now();
 	
+	private static JLabel label_orderid = new JLabel();
 	private static JLabel label_tablename = new JLabel();
 	private static JLabel label_mealname = new JLabel();
-	private static JComboBox<String> tablename = new JComboBox<>();
-	private static JComboBox<String> mealname = new JComboBox<>();
+	private static JTextField orderid = new JTextField();
+	private static JComboBox<String> tablename_combo = new JComboBox<>();
+	private static JComboBox<String> mealname_combo = new JComboBox<>();
+	private static JButton button_update = new JButton();
+	private static JButton button_delete = new JButton();
 	
 	private static Map<String, Integer> dataMap1 = new HashMap<>();
 	private static Map<String, Integer> dataMap2 = new HashMap<>();
 	
 	public static void table() {
-		
-		label_tablename.setText("МАСА");
-		label_tablename.setFont(new Font("Calibri", Font.BOLD, 30));
-		label_tablename.setBounds(150, 150, 100,30);
-		tablename.setBounds(70, 190, 220, 50); 
-		tablename.setFont(RestaurantMain.font);
 		
 		try {
 			Connection conn = DriverManager.getConnection(idbcURL,user,password);
@@ -71,22 +73,25 @@ class ReserveTable {
 			statement = conn.prepareStatement(sqlQ);
 			result = statement.executeQuery(); 
 			while(result.next()) {
+				
 				id = result.getInt("TID");
-				tablename.addItem(result.getString("TNAME")); //add all tables!
+				tablename_combo.addItem(result.getString("TNAME")); //add all tables!
 				dataMap1.put(result.getString("TNAME"),id);
-				}
+				
+			}
 			
-			
-			
-		
 			sqlQ = "SELECT * FROM MENU_ITEMS";
 			statement = conn.prepareStatement(sqlQ);
 			result = statement.executeQuery(); 
 			while(result.next()) {
+				
 				id = result.getInt("MID");
-				mealname.addItem(result.getString("ITEM")); //add all items-food/drinks!
+				mealname_combo.addItem(result.getString("ITEM")); //add all items-food/drinks!
 				dataMap2.put(result.getString("ITEM"),id);
-				}
+				
+			}
+			
+			
 			
 			conn.close();
 		} catch (SQLException e) {
@@ -94,11 +99,73 @@ class ReserveTable {
 			e.printStackTrace();
 		}
 		
+	
+		label_orderid.setText("ID");
+		label_orderid.setFont(new Font("Calibri", Font.BOLD, 30));
+		label_orderid.setBounds(100, 105, 100,30);
+		orderid.setBounds(70, 130, 50, 50); 
+		orderid.setFont(RestaurantMain.font);
+		
+		label_tablename.setText("МАСА");
+		label_tablename.setFont(new Font("Calibri", Font.BOLD, 30));
+		label_tablename.setBounds(150, 195, 100,30);
+		tablename_combo.setBounds(70, 220, 220, 50); 
+		tablename_combo.setFont(RestaurantMain.font);
+		
 		label_mealname.setText("Поръчано");
 		label_mealname.setFont(new Font("Calibri", Font.BOLD, 30));
-		label_mealname.setBounds(120, 355, 150,30);
-		mealname.setBounds(70, 390, 220, 50); 
-		mealname.setFont(RestaurantMain.font);
+		label_mealname.setBounds(120, 285, 150,30);
+		mealname_combo.setBounds(70, 320, 220, 50); 
+		mealname_combo.setFont(RestaurantMain.font);
+		
+		button_update = new JButton();
+		button_update.setText("Промени");
+		button_update.setBounds(70,390,220,50);
+		button_update.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				
+				try {
+					Connection conn = DriverManager.getConnection(idbcURL,user,password);
+				
+					int id_order = Integer.parseInt(orderid.getText());
+				
+					sql_order = "{CALL UP_ORDERS(?,?,?)}"; //The update procedure
+					
+					String selectedName = tablename_combo.getSelectedItem().toString();
+					int id_table = dataMap1.get(selectedName);
+					String selecteditem = mealname_combo.getSelectedItem().toString();
+					int id_item = dataMap2.get(selecteditem);
+				
+					statement = conn.prepareStatement(sql_order);
+					statement.setInt(1, id_order);
+			        statement.setInt(2, id_table);
+				    statement.setInt(3, id_item);
+				    result = statement.executeQuery();
+					
+				    conn.close();
+				} catch (SQLException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
+				
+			}
+			
+		});
+	    
+		button_delete = new JButton();
+		button_delete.setText("Изтрии");
+		button_delete.setBounds(70,450,220,50);
+		button_delete.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				// TODO Auto-generated method stub
+				
+			}
+			
+		});
 		
 		tableframe = new JFrame();
 		tableframe.setTitle("Table");
@@ -106,11 +173,14 @@ class ReserveTable {
 		tableframe.setResizable(false);
 		tableframe.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);    
 		tableframe.setLayout(null);
+		tableframe.add(label_orderid);
+		tableframe.add(orderid);
 		tableframe.add(label_tablename);
-		tableframe.add(tablename);
+		tableframe.add(tablename_combo);
 		tableframe.add(label_mealname);
-		tableframe.add(mealname);
-	
+		tableframe.add(mealname_combo);
+		tableframe.add(button_update);
+		tableframe.add(button_delete);
 		tableframe.setVisible(true);
 	}
 	
