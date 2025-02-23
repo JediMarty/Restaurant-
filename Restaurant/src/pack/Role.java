@@ -20,53 +20,67 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Arrays;
+import java.util.Comparator;
 import javax.imageio.ImageIO;
 import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 
 class Role {
 
-	PreparedStatement statement;
+	private PreparedStatement statement;
 	private ResultSet result;
-	String sql;
+	private String sql;
 	
 	static JPanel Profilepanel = new JPanel();
-	JPanel panel_reg = new JPanel();
-	JPanel panel_boss;
-	JPanel panel_waiter;
+	private JPanel panel_reg = new JPanel();
+	private JPanel panel_boss;
+	private JPanel panel_waiter;
 	static JPanel imagePanel;
 	private JLabel fname = new JLabel();
 	private JLabel lname = new JLabel();
 	private JLabel passl = new JLabel();
 	private JLabel pos = new JLabel();
 	private JLabel egnl = new JLabel();
+	private JLabel idl = new JLabel();
+	static JLabel imgLabel;
 	
-	static JComboBox<String> combo = new JComboBox<>();
+	private static JComboBox<String> combo = new JComboBox<>();
 	
-	static JTextField name = new JTextField();
-	static JTextField lastname = new JTextField();
-	static JTextField pass = new JTextField();
-	static JTextField egn = new JTextField();
+	private static JTextField name = new JTextField();
+	private static JTextField lastname = new JTextField();
+	private static JTextField pass = new JTextField();
+	private static JTextField egn = new JTextField();
+	private JTextField id = new JTextField();
 	
-	JButton regbtn;
-	JButton HomeIcon;
+	private JButton regbtn;
+	private JButton HomeIcon;
+	private JButton upbtn;
+	private JButton delbtn;
 	
 	static JScrollPane scroll;
 	
-	ImageIcon img_home1;
-	ImageIcon img_home2;
+	private ImageIcon img_home1;
+	private ImageIcon img_home2;
 
-	String idbcURL = "jdbc:oracle:thin:@localhost:1521:XE";
-	String user = "marti";
-	String password = "marti";
-	
+	private String idbcURL = "jdbc:oracle:thin:@localhost:1521:XE";
+	private String user = "marti";
+	private String password = "marti";
+    private String sql_employees;
+	private String str_selectedid;
+    
+	private int id_emplo;
+    private int selectedid;
 	static int flagtable = 0;
+	static int name_table;
+	static int lastClicktable;
 	
 	Role() {
 	
@@ -79,11 +93,11 @@ class Role {
 			sql = "SELECT e.Firstname, p.Pos_NAME "
 					+ "FROM EMPLOYEES e "
 					+ "JOIN positions p ON e.pos_id = p.pos_id "
-					+ "WHERE Firstname = ?";
+					+ "WHERE Firstname = ? AND Password = ? ";
 			
 			statement = conn.prepareStatement(sql);
 			statement.setString(1, RestaurantMain.username.getText());
-			
+			statement.setString(2, Login.resultHashedPass);
 			
 			result = statement.executeQuery(); 
 			
@@ -94,28 +108,31 @@ class Role {
 			*/ 
 			if (result.next()) //Results crawling
 			{
-				String storedpostion = result.getString("Pos_NAME"); //Getting text from the position drop down menu!
+				String storedpostion = result.getString("Pos_NAME");
 				Boolean flag = storedpostion.equals("Boss");
-		
+				Boolean flag2 = storedpostion.equals("Waiter");
+				
 				if (flag == true) {
 					
 					boss(); //Role is the Boss - full access in the software!
 					profile();
 				}
 				
-				else {
+				else if (flag2 == true ){
 					waiter(); //Role is the Waiter - limited access in the software!
 				    profile();
 				}
 			}
 			else { 
+				JOptionPane.showMessageDialog(RestaurantMain.frame, "Грешни данни!", "Грешка", JOptionPane.OK_OPTION);
+			}
+			
+			result = statement.executeQuery("SELECT pos_id, Pos_NAME FROM positions");
+			
+			while(result.next()) {
+				combo.addItem(result.getString("pos_id") + " " + result.getString("Pos_NAME")); //add all positions!
 				
 			}
-				result = statement.executeQuery("SELECT pos_id, Pos_NAME FROM positions");
-				
-				while(result.next()) {
-					combo.addItem(result.getString("pos_id") + " " + result.getString("Pos_NAME")); //add all positions!
-					}
 			
 			conn.close();
 		
@@ -128,39 +145,39 @@ class Role {
 	
 	void boss() {
 		
-		flagtable = 1;
+		flagtable = 1; //Only for the Boss - access to add more tables!
 		
 		fname.setText("ИМЕ");
 		fname.setFont(new Font("Calibri", Font.BOLD, 30));
-		fname.setBounds(150, 150, 100,30);
-		name.setBounds(70, 190, 220, 50); 
+		fname.setBounds(150, 40, 100,30);
+		name.setBounds(70, 70, 220, 50); 
 		name.setFont(RestaurantMain.font);
 		
 		lname.setText("ФАМИЛИЯ");
 		lname.setFont(new Font("Calibri", Font.BOLD, 30));
-		lname.setBounds(120, 355, 150,30);
-		lastname.setBounds(70, 390, 220, 50); 
+		lname.setBounds(110, 140, 150,30);
+		lastname.setBounds(70, 170, 220, 50); 
 		lastname.setFont(RestaurantMain.font);
 		
 		egnl.setText("ЕГН");
 		egnl.setFont(new Font("Calibri", Font.BOLD, 30));
-		egnl.setBounds(145, 500, 110,30);
-		egn.setBounds(70, 530, 220, 50); 
+		egnl.setBounds(150, 240, 110,30);
+		egn.setBounds(70, 270, 220, 50); 
 		egn.setFont(RestaurantMain.font);
 		
 		passl.setText("ПАРОЛА");
 		passl.setFont(new Font("Calibri", Font.BOLD, 30));
-		passl.setBounds(110, 650, 110,30);
-		pass.setBounds(70, 680, 220, 50);
+		passl.setBounds(125, 350, 110,30);
+		pass.setBounds(70, 380, 220, 50);
 		
 		pos.setText("ДЛЪЖНОСТ");
 		pos.setFont(new Font("Calibri", Font.BOLD, 30));
-		pos.setBounds(120, 755, 110,30);
-	    combo.setBounds(70, 785, 220, 50);
+		pos.setBounds(100, 440, 170, 30);
+	    combo.setBounds(70, 470, 220, 50);
 		
 		regbtn = new JButton();
 		regbtn.setText("РЕГИСТРИРАЙ");
-		regbtn.setBounds(70,840,220,50);
+		regbtn.setBounds(70,570,220,50);
 		regbtn.setFocusPainted(false);
 		regbtn.addActionListener(new ActionListener() {
 
@@ -169,39 +186,21 @@ class Role {
 				
 				try {
 					Connection conn = DriverManager.getConnection(idbcURL,user,password);
-				
-					MessageDigest digest;
 					
-					try {
-						digest = MessageDigest.getInstance("SHA-256"); //Hash algorithm
+					str_selectedid = combo.getSelectedItem().toString().split(" ")[0];
+					selectedid = Integer.parseInt(str_selectedid);
+					
+					sql_employees = "{CALL P_EMPLOYEES(?, ?, ?, ?, ?)}"; //The Registration/insert procedure
 						
-						byte[] hashedBytes = digest.digest(Role.pass.getText().getBytes());
+					statement = conn.prepareStatement(sql_employees);
+					statement.setString(1, name.getText());
+					statement.setString(2, lastname.getText());
+					statement.setString(3, egn.getText());
+					statement.setString(4, hashedpassword());
+					statement.setInt(5, selectedid);
 						
-						StringBuilder hexString = new StringBuilder();
-						for (byte b: hashedBytes) {
-							hexString.append(String.format("%02x", b));
-						}
-						
-						String resultHashedPass = hexString.toString();
-						
-						String selectedid = combo.getSelectedItem().toString().split(" ")[0];
-						
-						
-						sql = "{CALL P_EMPLOYEES(?, ?, ?, ?, ?)}"; //The Registration/insert procedure
-						
-						statement = conn.prepareStatement(sql);
-						statement.setString(1, Role.name.getText());
-						statement.setString(2, Role.lastname.getText());
-						statement.setString(3, Role.egn.getText());
-						statement.setString(4, resultHashedPass);
-						statement.setString(5, selectedid);
-						
-						result = statement.executeQuery(); 
-						
-					} catch (NoSuchAlgorithmException e1) {
-						// TODO Auto-generated catch block
-						e1.printStackTrace();
-					}
+					result = statement.executeQuery(); 
+					
 					
 					conn.close();
 					
@@ -213,6 +212,82 @@ class Role {
 			}
 			
 		});
+		
+		idl.setText("ID - служител");
+		idl.setFont(new Font("Calibri", Font.BOLD, 30));
+		idl.setBounds(85, 650, 200, 30);
+		id.setBounds(70, 680, 220, 50); 
+		id.setFont(RestaurantMain.font);
+		
+		upbtn = new JButton();
+		upbtn.setText("Промени");
+		upbtn.setBounds(70,730,220,50);
+		upbtn.setFocusPainted(false);
+		upbtn.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				
+				try {
+					Connection conn = DriverManager.getConnection(idbcURL,user,password);
+				
+					str_selectedid = combo.getSelectedItem().toString().split(" ")[0];
+					selectedid = Integer.parseInt(str_selectedid);
+					id_emplo = Integer.parseInt(id.getText());
+					
+					sql_employees = "{CALL UP_EMPLOYEES(?, ?, ?, ?, ?, ?)}"; //The update procedure
+						
+					statement = conn.prepareStatement(sql_employees);
+					statement.setInt(1, id_emplo);
+					statement.setString(2, name.getText());
+					statement.setString(3, lastname.getText());
+					statement.setString(4, egn.getText());
+					statement.setString(5, hashedpassword());
+					statement.setInt(6, selectedid);
+						
+					result = statement.executeQuery(); 
+					
+					conn.close();
+					
+				} catch (SQLException er) {
+					// TODO Auto-generated catch block
+					er.printStackTrace();
+				} 
+				
+			}
+		});
+		
+		delbtn = new JButton();
+		delbtn.setText("Изтрии");
+		delbtn.setBounds(70,800,220,50);
+		delbtn.setFocusPainted(false);
+		delbtn.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				
+				try {
+					Connection conn = DriverManager.getConnection(idbcURL,user,password);
+				
+					id_emplo = Integer.parseInt(id.getText());
+					
+					sql_employees = "{CALL D_EMPLOYEES(?)}"; //The delete procedure
+						
+					statement = conn.prepareStatement(sql_employees);
+					statement.setInt(1, id_emplo);
+					
+				    result = statement.executeQuery(); 
+				    
+				    conn.close();
+					
+				} catch (SQLException er) {
+					// TODO Auto-generated catch block
+					er.printStackTrace();
+				} 
+				
+			}
+		});
+		
 		
 		Profilepanel.removeAll();
 		
@@ -241,6 +316,10 @@ class Role {
 		panel_reg.add(pos);
 		panel_reg.add(combo);
 		panel_reg.add(regbtn);
+		panel_reg.add(idl);
+		panel_reg.add(id);
+		panel_reg.add(upbtn);
+		panel_reg.add(delbtn);
 		panel_reg.setLayout(null);
 		
 		Profilepanel.add(panel_reg);
@@ -337,6 +416,31 @@ class Role {
 	    displaytables();
 	    
 	}
+
+	private static String hashedpassword() {
+	
+		MessageDigest digest;
+		String resultHashedPass ="";
+		
+		try {
+			digest = MessageDigest.getInstance("SHA-256"); //Hash algorithm
+			
+			byte[] hashedBytes = digest.digest(pass.getText().getBytes());
+			
+			StringBuilder hexString = new StringBuilder();
+			for (byte b: hashedBytes) {
+				hexString.append(String.format("%02x", b));
+			}
+			
+			resultHashedPass = hexString.toString();
+					
+			
+		} catch (NoSuchAlgorithmException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+		return resultHashedPass;	
+	}
 	
 	static void displaytables() {
 		
@@ -346,14 +450,38 @@ class Role {
 		int dotIndex;
 		String FileNAME;
 		ImageIcon image;
-		JLabel imgLabel = new JLabel();
+		imgLabel = new JLabel();
 		JPanel imageContainer = new JPanel(); // for the image and the image text
 		imageContainer.setLayout(new BoxLayout(imageContainer, BoxLayout.Y_AXIS)); //Vertical arrangement);
 		imagePanel = new JPanel();
 		imagePanel.setLayout(new GridLayout(0,3,10,10));
-	
+	    
 		if (dir.exists()) {
-			for (File file : dir.listFiles() ) {
+			
+			File[] files = dir.listFiles();
+	
+			if (files !=null) {
+				Arrays.sort(files, new Comparator<File>( ) {
+
+					@Override
+					public int compare(File f1, File f2) {
+						
+						// Get index for both files
+						int idxFile1 = f1.getName().lastIndexOf(".");
+						int idxFile2 = f2.getName().lastIndexOf(".");
+						
+						String fileName1 = f1.getName().substring(0, idxFile1-1);
+						String fileName2 = f2.getName().substring(0, idxFile2-1);
+						
+						int num1 = Integer.parseInt(fileName1);
+						int num2 = Integer.parseInt(fileName2);
+						return Integer.compare(num1, num2);
+					}
+					
+				});
+			}
+
+	       for (File file : files) {
 				dotIndex = file.getName().lastIndexOf(".");
 				FileNAME = file.getName().substring(0, dotIndex-1);
 						
@@ -366,9 +494,46 @@ class Role {
 					imgLabel.setText(FileNAME);
 					imgLabel.setHorizontalTextPosition(JLabel.CENTER);
 			        imgLabel.setVerticalTextPosition(JLabel.BOTTOM);
+			        imgLabel.setCursor(new Cursor(Cursor.HAND_CURSOR));
+					imgLabel.addMouseListener(new MouseListener() {
+						
+						@Override
+						public void mouseClicked(MouseEvent e) {
+							int dotIndex2 = file.getName().lastIndexOf(".");
+							String strid_table = file.getName().substring(0, dotIndex2-1);
+							name_table = Integer.parseInt(strid_table);
+							lastClicktable = name_table;
+							ReserveTable.table(name_table);
+							
+						}
+
+						@Override
+						public void mousePressed(MouseEvent e) {
+							// TODO Auto-generated method stub
+							
+						}
+
+						@Override
+						public void mouseReleased(MouseEvent e) {
+							// TODO Auto-generated method stub
+							
+						}
+
+						@Override
+						public void mouseEntered(MouseEvent e) {
+							// TODO Auto-generated method stub
+							
+						}
+
+						@Override
+						public void mouseExited(MouseEvent e) {
+							// TODO Auto-generated method stub
+							
+						}
+						
+					});
 			        
-					imageContainer.add(imgLabel);
-					imageContainer.setBackground(Color.WHITE);
+			     
 				    
 					imagePanel.add(imgLabel);
 				
@@ -381,12 +546,17 @@ class Role {
 			}
 		}
 		
-		scroll = new JScrollPane(imagePanel);
-		scroll.setBounds(700, 620, 500, 500);
 		
-		RestaurantMain.frame.add(scroll);
-		 
+		
+		scroll = new JScrollPane(imagePanel);
+		scroll.setBounds(650, 270, 500, 500); 
+		RestaurantMain.Homepanel.add(scroll);
+		
+		
+		
+		
 	}
 	
 }
+
 
