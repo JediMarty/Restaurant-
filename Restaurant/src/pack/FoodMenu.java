@@ -36,18 +36,22 @@ class FoodMenu {
 	
 	private JFrame foodframe;
 	private JPanel imagePanel;
-	JPanel imageContainer;
-	JLabel imgLabel;
-	JTextField search;
+	private JPanel imageContainer;
+	private JLabel imgLabel;
+	private JTextField search;
 	private final String SAVE_DIR = "Menu_food";
-	String text;
-	String money;
-	Double price;
+	private String text;
+	private String price;
+	private String fileNameToSearch;
+	static String item;
+	private String sql_MENU_ITEMS;
 	
-	String idbcURL = "jdbc:oracle:thin:@localhost:1521:XE";
-	String user = "marti";
-	String password = "marti";
+	private int dotIndex;
 	
+	private String idbcURL = "jdbc:oracle:thin:@localhost:1521:XE";
+	private String user = "marti";
+	private String password = "marti";
+	 JScrollPane scroll;
 	FoodMenu() {
 		init();
 	}
@@ -58,7 +62,7 @@ class FoodMenu {
 		imagePanel.setLayout(new GridLayout(0,4,10,10));
         imagePanel.setBackground(Color.orange);
 	
-        JScrollPane scroll = new JScrollPane(imagePanel);
+        scroll = new JScrollPane(imagePanel);
         
         search = new JTextField();
         
@@ -121,9 +125,9 @@ class FoodMenu {
 			
 			File file = filechooser.getSelectedFile();
 			text = JOptionPane.showInputDialog("Въведете име на ястието");
-			money = JOptionPane.showInputDialog("Въведете цена");
+			price = JOptionPane.showInputDialog("Въведете цена");
 			
-			dataPrice(text,money);
+			dataPrice(text,price);
 			
 			if (text != null) {
 				
@@ -173,9 +177,9 @@ class FoodMenu {
 			PreparedStatement statement;
 		    ResultSet result;
 		    
-		    String sql = "{CALL P_MENU_ITEMS(?, ?)}"; //The insert procedure
+		    sql_MENU_ITEMS = "{CALL P_MENU_ITEMS(?, ?)}"; //The insert procedure
 			
-			statement = conn.prepareStatement(sql);
+			statement = conn.prepareStatement(sql_MENU_ITEMS);
 			statement.setString(1, filename);
 			statement.setString(2, money);
 			result = statement.executeQuery(); 
@@ -227,27 +231,23 @@ class FoodMenu {
 		    int dotIndex = file.getName().lastIndexOf(".");
 			String fileNameToSearch = file.getName().substring(0, dotIndex-1); //Get the file name without .png!
 		    
-		    String sqlQ = "SELECT * FROM MENU_ITEMS";
+		    String sqlQ = "SELECT * FROM MENU_ITEMS WHERE item = ?";
 		    
-		    String sql = "{CALL D_MENU_ITEMS(?)}"; //The delete procedure
+		    sql_MENU_ITEMS = "{CALL D_MENU_ITEMS(?)}"; //The delete procedure
 			
 			statement = conn.prepareStatement(sqlQ);
+			statement.setString(1, fileNameToSearch);
 			result = statement.executeQuery(); 
 	
 			if (result.next()) //Results crawling
 			{
-				String storedname = result.getString("item"); 
+				int storedpostion = result.getInt("mID"); //ID where is the item who needs to be deleted!
 				
-				if (fileNameToSearch.contains(storedname)) {
-					int storedpostion = result.getInt("mID"); //ID where is the item who needs to be deleted!
-					
-					statement = conn.prepareStatement(sql);
-					statement.setInt(1, storedpostion);
-					result = statement.executeQuery(); 
-				}
+				statement = conn.prepareStatement(sql_MENU_ITEMS);
+				statement.setInt(1, storedpostion);
+				result = statement.executeQuery(); 
 				
 			}
-		
 			
 			conn.close();
 			
@@ -303,10 +303,13 @@ class FoodMenu {
 			
 			deldataPrice(file);
 			file.delete(); 
-			imagePanel.remove(panel); //remove from the interface
-			foodframe.dispose();
-			new FoodMenu();
-			
+			//imagePanel.remove(panel); //remove from the interface
+			//imagePanel.revalidate();
+			//imagePanel.repaint();
+			//scroll.revalidate();
+			//scroll.repaint();
+		    foodframe.dispose();
+		    new FoodMenu();
 		}
 		
 		else {
@@ -316,24 +319,24 @@ class FoodMenu {
 	}
 	
 	private void search() {
-		
+		//ne raboti pravilno!!!
 		File dir = new File(SAVE_DIR);
 		imagePanel.removeAll();
 		
 		for (File file : dir.listFiles() ) {
 			
-			if (file.getName().toLowerCase().contains(search.getText().toLowerCase())) {
+			dotIndex = file.getName().lastIndexOf(".");
+			fileNameToSearch = file.getName().substring(0, dotIndex-1);
+			// replaceAll("\\s+", "") - remove all spaces!
+			if (fileNameToSearch.replaceAll("\\s+", "").toLowerCase().contains(search.getText().toLowerCase())) {
 				displayImage(file,file.getName());
 				
 			}
-			
-			else {
-				JOptionPane.showMessageDialog(foodframe, "Не е намерено!", "Грешка", JOptionPane.OK_OPTION);
-			}
 		}
+		
 	}
 	
-	public void orderFood() {
+	public void orderFood(String fileNameToSearch) {
 		
 		imgLabel.setCursor(new Cursor(Cursor.HAND_CURSOR));
 		imgLabel.addMouseListener(new MouseListener() {
@@ -343,7 +346,9 @@ class FoodMenu {
 				int confirm = JOptionPane.showConfirmDialog(foodframe, "Добавено - " + text, "Добавяне", JOptionPane.YES_NO_OPTION);
 				
 				if (confirm == JOptionPane.YES_OPTION) {
-					
+					item = fileNameToSearch;
+				
+					ReserveTable.order();
 				}
 				
 				else {
@@ -392,7 +397,7 @@ class FoodMenu {
 			ImageIcon image = new ImageIcon(img.getScaledInstance(150, 150, Image.SCALE_SMOOTH));
 
 			int dotIndex = file.getName().lastIndexOf(".");
-			String fileNameToSearch = file.getName().substring(0, dotIndex-1);
+			fileNameToSearch = file.getName().substring(0, dotIndex-1);
 			
 		    imgLabel = new JLabel(image);
 		    imgLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
@@ -435,7 +440,7 @@ class FoodMenu {
 			e.printStackTrace();
 		}
 		
-		orderFood(); //Method for ordering for the food menu, by clicking the image of the meal!
+		orderFood(fileNameToSearch); //Method for ordering for the food menu, by clicking the image of the meal!
 	}
 }
 
