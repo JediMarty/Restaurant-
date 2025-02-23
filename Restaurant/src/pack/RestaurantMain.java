@@ -13,6 +13,8 @@ import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JPasswordField;
+import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 
 public class RestaurantMain {
@@ -28,21 +30,27 @@ public class RestaurantMain {
 	ImageIcon img_waiter2;
 	ImageIcon img_addtable1;
 	ImageIcon img_addtable2;
+	static ImageIcon delIcon;
 	static Font font;
 	static JTextField username;
-	static JTextField password;
+	static JPasswordField password;
 	JButton FoodIcon;
 	JButton DrinkIcon;
 	JButton WaiterIcon;
 	JButton loginbtn;
-	JPanel Homepanel;
+	static JButton button_del_table;
+	static JPanel Homepanel;
 	JPanel panel1;
 	JPanel panel_login;
 	JLabel logoframe;
 	JLabel label_user;
 	JLabel label_pass;
 	JLabel menuframe;
-	JButton label_addtable;
+	JButton addtable; 
+	static JPanel imagePanel;
+	
+    static JScrollPane scroll;
+	
 	public static JPanel cardPanel = new JPanel(new CardLayout());
 	
 	RestaurantMain() {
@@ -58,7 +66,7 @@ public class RestaurantMain {
 		label_pass = new JLabel();
 		menuframe = new JLabel();
 		username = new JTextField();
-		password = new JTextField();
+		password = new JPasswordField();
 		logo = new ImageIcon("logo.png");
 		img_food1 = new ImageIcon("food.png");
 		img_food2 = new ImageIcon("food2.png");
@@ -69,15 +77,17 @@ public class RestaurantMain {
 		img_addtable1 = new ImageIcon("iconaddtable1.png");
 		img_addtable2 = new ImageIcon("iconaddtable2.png");
 		menufr = new ImageIcon("menuframe.png");
+		delIcon = new ImageIcon("icondeltable1.png");
 		FoodIcon = new JButton();
 		DrinkIcon = new JButton();
 		WaiterIcon = new JButton();
-		label_addtable = new JButton();
+		addtable = new JButton();
+		button_del_table = new JButton();
 		font = new Font("Calibri", Font.PLAIN , 30);
 		//...............................//
 		
 		logoframe.setIcon(logo);
-		logoframe.setBounds(650, 400, 500, 200);
+		logoframe.setBounds(650, 100, 500, 200);
 		
 		panel1.setBackground(Color.orange);
 		panel1.setBounds(0,0,1520,100);
@@ -143,15 +153,32 @@ public class RestaurantMain {
 		WaiterIcon.addMouseListener(click_WaiterIcon);
 		WaiterIcon.setCursor(new Cursor(Cursor.HAND_CURSOR));
 		
-		label_addtable.setIcon(img_addtable1);
-		label_addtable.setBorderPainted(false);
-		label_addtable.setBounds(1400, 900, 70, 70);
-		label_addtable.setContentAreaFilled(false);
-		label_addtable.addMouseListener(click_tableicon);
-		label_addtable.setCursor(new Cursor(Cursor.HAND_CURSOR));
+		addtable.setIcon(img_addtable1);
+		addtable.setBorderPainted(false);
+		addtable.setBounds(1400, 900, 70, 70);
+		addtable.setContentAreaFilled(false);
+		addtable.addMouseListener(click_tableicon);
+		addtable.setCursor(new Cursor(Cursor.HAND_CURSOR));
+		
+		button_del_table.setBounds(1200, 700, 70, 70);
+		button_del_table.setIcon(delIcon);
+		button_del_table.setBorderPainted(false);
+		button_del_table.setContentAreaFilled(false);
+		button_del_table.setCursor(new Cursor(Cursor.HAND_CURSOR));
+		button_del_table.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				
+				ReserveTable.deltable();
+				
+			}
+			
+		});
 		
 		Homepanel = new JPanel();
-		Homepanel.add(label_addtable);
+		Homepanel.add(button_del_table);
+		Homepanel.add(addtable); 
 		Homepanel.add(WaiterIcon);
 		Homepanel.add(DrinkIcon);
 		Homepanel.add(FoodIcon);
@@ -161,7 +188,6 @@ public class RestaurantMain {
 		Homepanel.add(logoframe);
         Homepanel.setLayout(null);
 		Homepanel.setBackground(Color.WHITE);
-		
 		cardPanel.add(Homepanel);
 		cardPanel.add(Role.Profilepanel);
 		
@@ -284,10 +310,10 @@ public class RestaurantMain {
 		@Override
 		public void mouseClicked(MouseEvent e) {
 			
-			if (Role.flagtable == 1) {
+			if (Role.flagtable == 1) { //Only the Boss have privilege to add more tables!
 				
 				ReserveTable.addtable();
-				
+			    Homepanel.remove(Role.scroll);
 				Role.displaytables();
 			    Role.imagePanel.revalidate();
 			    Role.imagePanel.repaint();
@@ -311,13 +337,13 @@ public class RestaurantMain {
 
 		@Override
 		public void mouseEntered(MouseEvent e) {
-			label_addtable.setIcon(img_addtable2);
+			addtable.setIcon(img_addtable2);
 			
 		}
 
 		@Override
 		public void mouseExited(MouseEvent e) {
-			label_addtable.setIcon(img_addtable1);
+			addtable.setIcon(img_addtable1);
 			
 		}
 		
@@ -326,7 +352,7 @@ public class RestaurantMain {
 	public static void switch_the_scene() {
 		CardLayout cl = (CardLayout) (cardPanel.getLayout());
 		cl.next(cardPanel);
-		
-	}
-	
+		}
+
 }
+
