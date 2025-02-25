@@ -38,6 +38,7 @@ public class RestaurantMain {
 	JButton DrinkIcon;
 	JButton WaiterIcon;
 	JButton loginbtn;
+	JButton addtable; 
 	static JButton button_del_table;
 	static JPanel Homepanel;
 	JPanel panel1;
@@ -46,7 +47,6 @@ public class RestaurantMain {
 	JLabel label_user;
 	JLabel label_pass;
 	JLabel menuframe;
-	JButton addtable; 
 	static JPanel imagePanel;
 	
     static JScrollPane scroll;
@@ -77,7 +77,7 @@ public class RestaurantMain {
 		img_addtable1 = new ImageIcon("iconaddtable1.png");
 		img_addtable2 = new ImageIcon("iconaddtable2.png");
 		menufr = new ImageIcon("menuframe.png");
-		delIcon = new ImageIcon("icondeltable1.png");
+		delIcon = new ImageIcon("icondeltable2.png");
 		FoodIcon = new JButton();
 		DrinkIcon = new JButton();
 		WaiterIcon = new JButton();
@@ -155,12 +155,12 @@ public class RestaurantMain {
 		
 		addtable.setIcon(img_addtable1);
 		addtable.setBorderPainted(false);
-		addtable.setBounds(1400, 900, 70, 70);
+		addtable.setBounds(1400, 820, 70, 70);
 		addtable.setContentAreaFilled(false);
 		addtable.addMouseListener(click_tableicon);
 		addtable.setCursor(new Cursor(Cursor.HAND_CURSOR));
 		
-		button_del_table.setBounds(1200, 700, 70, 70);
+		button_del_table.setBounds(1400, 900, 70, 70);
 		button_del_table.setIcon(delIcon);
 		button_del_table.setBorderPainted(false);
 		button_del_table.setContentAreaFilled(false);
