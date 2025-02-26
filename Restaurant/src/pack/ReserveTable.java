@@ -70,17 +70,22 @@ class ReserveTable {
 	private static JComboBox<String> mealname_combo = new JComboBox<>();
 	private static JButton button_update = new JButton();
 	private static JButton button_delete = new JButton();
-	private static JButton button_close_bill = new JButton();
 	private static JButton button_get_bill = new JButton();
-	private static JButton button_order = new JButton();
-	
 	private static Map<String, Integer> dataMap1 = new HashMap<>();
 	private static Map<String, Integer> dataMap2 = new HashMap<>();
+	
+	private static DefaultTableModel tableModel;
+	private static JTable table;
+	private static JScrollPane scroll;
 	
 	public static void table(int idfileName) {
 		
 		try {
 			Connection conn = DriverManager.getConnection(idbcURL,user,password);
+			
+			panel = new JPanel();
+			tablename_combo = new JComboBox<>();
+			mealname_combo = new JComboBox<>(); 
 			
 			sqlQ = "SELECT * FROM RTABLES";
 			statement = conn.prepareStatement(sqlQ);
@@ -96,6 +101,7 @@ class ReserveTable {
 			sqlQ = "SELECT * FROM MENU_ITEMS";
 			statement = conn.prepareStatement(sqlQ);
 			result = statement.executeQuery(); 
+			
 			while(result.next()) {
 				
 				id = result.getInt("MID");
@@ -104,15 +110,12 @@ class ReserveTable {
 				
 			}
 			
-			
-			
 			conn.close();
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		
-	
 		label_orderid.setText("ID");
 		label_orderid.setFont(new Font("Calibri", Font.BOLD, 30));
 		label_orderid.setBounds(145, 30, 100,50);
@@ -138,15 +141,23 @@ class ReserveTable {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				
+				String orderIdString = orderid.getText();
+
+				if (orderIdString.equals("")) {
+					
+					return;
+					
+				}
+				
 				try {
 					Connection conn = DriverManager.getConnection(idbcURL,user,password);
 				
-					int id_order = Integer.parseInt(orderid.getText());
+					int id_order = Integer.parseInt(orderIdString);
 				
 					sql_order = "{CALL UP_ORDERS(?,?,?)}"; //The update procedure
 					
 					String selectedName = tablename_combo.getSelectedItem().toString();
-					int id_table = dataMap1.get(selectedName);
+					id_table = dataMap1.get(selectedName);
 					String selecteditem = mealname_combo.getSelectedItem().toString();
 					int id_item = dataMap2.get(selecteditem);
 				
@@ -162,6 +173,9 @@ class ReserveTable {
 					e1.printStackTrace();
 				}
 				
+				tableModel.setRowCount(0); //delete rows for the new ones with the changes!
+				SQL_Handler.ShowOrder(table, tableModel);
+				
 			}
 			
 		});
@@ -173,10 +187,18 @@ class ReserveTable {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				
-				try {
+				String orderIdString = orderid.getText();
+
+				if (orderIdString.equals("")) {
+					
+					return; //Stops the method
+					
+				}
+				
+				try { 
 					Connection conn = DriverManager.getConnection(idbcURL,user,password);
 				
-					int id_order = Integer.parseInt(orderid.getText());
+					int id_order = Integer.parseInt(orderIdString);
 				
 					sql_order = "{CALL D_ORDERS(?)}"; //The delete procedure
 					
@@ -188,7 +210,10 @@ class ReserveTable {
 				} catch (SQLException e1) {
 					// TODO Auto-generated catch block
 					e1.printStackTrace();
-				}
+				} 
+				
+				tableModel.setRowCount(0); //delete rows!
+				SQL_Handler.ShowOrder(table, tableModel);
 				
 			}
 			
@@ -197,80 +222,74 @@ class ReserveTable {
 		button_get_bill.setText("СМЕТКА");
 		button_get_bill.setBounds(45,510,220,50);
 		button_get_bill.addActionListener(new ActionListener() {
-
+       
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				
+				if (tableModel.getRowCount() !=0) {
 				
+				tableModel.setColumnCount(0); //delete columns for the new ones!
+				tableModel.setRowCount(0); //delete rows for the new ones!
 				
-			}
-			
-		});
-		
-		button_close_bill.setText("Затвори сметка");
-		button_close_bill.setBounds(45,570,220,50);
-		button_close_bill.addActionListener(new ActionListener() {
-
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				
-				
-				
-			}
-			
-		});
-		/*
-		button_order.setText("Промени");
-		button_order.setBounds(45,390,220,50);
-		button_order.addActionListener(new ActionListener() {
-
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				
-				
+				tableModel.addColumn("ястие/напитка");
+				tableModel.addColumn("Брой");
+				tableModel.addColumn("Сума");
 				
 				try {
 					
 					Connection conn = DriverManager.getConnection(idbcURL,user,password);
 					
-					String sql = "SELECT TID, TNAME FROM RTABLES "
-							+ "WHERE TNAME = ? ";
+					sqlQ = "SELECT m.item AS Food, COUNT(m.item), SUM(m.price) AS Price "
+							+ "FROM orders o "
+							+ "JOIN menu_items m ON o.mid = m.mid "
+							+ "JOIN rtables t ON o.tid = t.tid "
+							+ "WHERE t.TNAME = ? "
+							+ "GROUP BY m.item "
+							+ "UNION ALL "
+						    + "SELECT 'Обща сума' AS Food, COUNT(m.item), SUM(m.price) AS Price "
+							+ "FROM orders o "
+							+ "JOIN menu_items m ON o.mid = m.mid "
+							+ "JOIN rtables t ON o.tid = t.tid "
+							+ "WHERE t.TNAME = ? ";
 					
-					statement = conn.prepareStatement(sql);
-					statement.setInt(1, idfileName);
-			        result = statement.executeQuery();
-					
-			        
-			      
-			        
-			        
-					conn.close();
+					statement = conn.prepareStatement(sqlQ);
+					statement.setInt(1, Role.lastClicktable);
+					statement.setInt(2, Role.lastClicktable);
+				    result = statement.executeQuery();
+			
+				   while (result.next()) {
+				    	
+				    	String item = result.getString("food");
+				    	String str_price = result.getString("price");
+				    	Double price = Double.valueOf(str_price);
+				    	int count = result.getInt("COUNT(m.item)");
+				    	tableModel.addRow(new Object[] {item, count, String.format("%.2f",price)});
+				    }
+				    
+				    conn.close();
 				} catch (SQLException e1) {
 					// TODO Auto-generated catch block
 					e1.printStackTrace();
 				}
-			
 				
-			
+				}
 				
 			}
-			
 		});
-		*/
-		DefaultTableModel tableModel = new DefaultTableModel();
-		JTable table = new JTable(tableModel);
+		
+		tableModel = new DefaultTableModel();
+		table = new JTable(tableModel);
+		tableModel.addColumn("ID");
 		tableModel.addColumn("Сметка");
 		tableModel.addColumn("МАСА");
 		tableModel.addColumn("Сервитьор");
 		tableModel.addColumn("ястие/напитка");
-		//tableModel.addColumn("Цена");
 		tableModel.addColumn("Дата");
-		//table.setBounds(10, 10, 500, 100);
-	
+		/*
 		try {
 			Connection conn = DriverManager.getConnection(idbcURL,user,password);
 		
-			String sql = "SELECT b.bill, t.TNAME, e.FIRSTNAME, m.ITEM , o.TIMEORDERING "
+			String sql = "SELECT o.ORDERSID ,b.bill, t.TNAME, e.FIRSTNAME, m.ITEM , o.TIMEORDERING "
 					+ "FROM ORDERS o "
 					+ "JOIN table_bill b "
 					+ "ON o.BILLID = b.BILLID "
@@ -287,14 +306,14 @@ class ReserveTable {
 		    result = statement.executeQuery();
 			
 		    while (result.next()) {
+		    	int num = result.getInt("ORDERSID");
 		    	String bill = result.getString("bill");
 		    	String rtable = result.getString("TNAME");
 		    	String waiter = result.getString("FIRSTNAME");
 		    	String item = result.getString("ITEM");
-		    	//String price = result.getString("");
 		    	String time = result.getString("TIMEORDERING");
 		    	
-		    	tableModel.addRow(new Object[] {bill, rtable, waiter, item, time});
+		    	tableModel.addRow(new Object[] {num, bill, rtable, waiter, item, time});
 		    }
 		
 			conn.close();
@@ -303,6 +322,8 @@ class ReserveTable {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
+	*/
+		SQL_Handler.ShowOrder(table, tableModel);
 		
 		panel.setBackground(Color.orange);
 		panel.setLayout(null);
@@ -316,7 +337,6 @@ class ReserveTable {
 		panel.add(button_update);
 		panel.add(button_delete);
 		panel.add(button_get_bill);
-		panel.add(button_close_bill);
 		
 		tableframe = new JFrame();
 		tableframe.setTitle("Table");
@@ -324,10 +344,11 @@ class ReserveTable {
 		tableframe.setResizable(false);
 		tableframe.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);    
 		tableframe.setLayout(null);
-		JScrollPane s = new JScrollPane(table);
-		s.setBounds(10, 10, 500, 100);
-		tableframe.add(s);
+		scroll = new JScrollPane(table);
+		scroll.setBounds(10, 10, 500, 100);
+		tableframe.add(scroll);
 		tableframe.add(panel);
+		tableframe.revalidate(); tableframe.repaint();
 		tableframe.setVisible(true);
 		
 	}
@@ -408,7 +429,7 @@ class ReserveTable {
 			System.out.println(stored_mid);
 			DateTimeFormatter format = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 			String formatted_datetime = datetime.format(format);
-			LocalDateTime now = LocalDateTime.now();
+			
 			Random r = new Random();
 			String randomNumber = String.format("%04d", r.nextInt(10001));
 			int bill = Integer.parseInt(randomNumber);
@@ -449,12 +470,11 @@ class ReserveTable {
 			sql_order = "{CALL P_ORDERS(?,?,?,?,?)}"; //The insert procedure
 			
 			statement = conn.prepareStatement(sql_order);
-			statement.setInt(1, id_table); int a = id_table;
-			statement.setInt(2, stored_eid); int b = stored_eid;
-			statement.setInt(3, stored_mid); int c = stored_mid;
-			//statement.setTimestamp(4, Timestamp.valueOf(now)); 
-			statement.setTimestamp(4, Timestamp.valueOf(formatted_datetime)); // TO_CHAR (o.TIMEORDERING, 'YYYY-MM-DD HH24:MI:SS')
-			statement.setInt(5, stored_IDbill); String d = formatted_datetime; int e =  stored_IDbill;
+			statement.setInt(1, id_table); 
+			statement.setInt(2, stored_eid); 
+			statement.setInt(3, stored_mid); 
+		    statement.setTimestamp(4, Timestamp.valueOf(formatted_datetime)); // TO_CHAR (o.TIMEORDERING, 'YYYY-MM-DD HH24:MI:SS')
+			statement.setInt(5, stored_IDbill); String d = formatted_datetime;
 			result = statement.executeQuery(); 
 			
 			conn.close();
@@ -546,10 +566,7 @@ class ReserveTable {
 		}
 		
 		lastFile.delete(); 
-		
 		RestaurantMain.Homepanel.remove(Role.scroll);
-        //RestaurantMain.button_del_table.removeActionListener(RestaurantMain.button_del_table.getActionListeners()[0]);
-       
 		
 		try {
 			
@@ -580,14 +597,14 @@ class ReserveTable {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
-	
 		
-		    Role.displaytables();
-		    Role.imagePanel.revalidate();
-		    Role.imagePanel.repaint();
-		    Role.scroll.revalidate();
-		    Role.scroll.repaint();
+		Role.displaytables();
+		Role.imagePanel.revalidate();
+		Role.imagePanel.repaint();
+		Role.scroll.revalidate();
+		Role.scroll.repaint();
 		
 	}
 	
 }
+
