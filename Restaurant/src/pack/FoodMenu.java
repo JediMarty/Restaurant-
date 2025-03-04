@@ -51,7 +51,8 @@ class FoodMenu {
 	private String idbcURL = "jdbc:oracle:thin:@localhost:1521:XE";
 	private String user = "marti";
 	private String password = "marti";
-	 JScrollPane scroll;
+	JScrollPane scroll;
+	
 	FoodMenu() {
 		init();
 	}
@@ -127,7 +128,7 @@ class FoodMenu {
 			text = JOptionPane.showInputDialog("Въведете име на ястието");
 			price = JOptionPane.showInputDialog("Въведете цена");
 			
-			dataPrice(text,price);
+			addItemtoDB(text,price);
 			
 			if (text != null) {
 				
@@ -169,7 +170,7 @@ class FoodMenu {
 		}
 	}
 	
-	private void dataPrice(String filename, String money) {
+	private void addItemtoDB(String filename, String money) {
 		
 		try {
 			Connection conn = DriverManager.getConnection(idbcURL,user,password);
@@ -220,7 +221,7 @@ class FoodMenu {
 		
 	}
 	
-	private void deldataPrice(File file) {
+	private void delItemfromDB(File file) {
 	
 		try {
 			Connection conn = DriverManager.getConnection(idbcURL,user,password);
@@ -301,7 +302,7 @@ class FoodMenu {
 		
 		if (confirm == JOptionPane.YES_OPTION) {
 			
-			deldataPrice(file);
+			delItemfromDB(file);
 			file.delete(); 
 			//imagePanel.remove(panel); //remove from the interface
 			//imagePanel.revalidate();
@@ -319,7 +320,7 @@ class FoodMenu {
 	}
 	
 	private void search() {
-		//ne raboti pravilno!!!
+		
 		File dir = new File(SAVE_DIR);
 		imagePanel.removeAll();
 		
@@ -343,7 +344,7 @@ class FoodMenu {
 
 			@Override
 			public void mouseClicked(MouseEvent e) {
-				int confirm = JOptionPane.showConfirmDialog(foodframe, "Добавено - " + text, "Добавяне", JOptionPane.YES_NO_OPTION);
+				int confirm = JOptionPane.showConfirmDialog(foodframe, "Добавено", "Добавяне", JOptionPane.YES_NO_OPTION);
 				
 				if (confirm == JOptionPane.YES_OPTION) {
 					item = fileNameToSearch;
@@ -381,6 +382,11 @@ class FoodMenu {
 			}
 			
 		});
+		
+		if (ReserveTable.tableframe != null) {
+		ReserveTable.tableframe.dispose();
+		
+		}
 	}
 	
 	private void displayImage(File file, String text) {
@@ -443,4 +449,3 @@ class FoodMenu {
 		orderFood(fileNameToSearch); //Method for ordering for the food menu, by clicking the image of the meal!
 	}
 }
-
