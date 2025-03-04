@@ -31,7 +31,9 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JTable;
 import javax.swing.JTextField;
+import javax.swing.table.DefaultTableModel;
 
 class Role {
 
@@ -59,13 +61,16 @@ class Role {
 	private static JTextField pass = new JTextField();
 	private static JTextField egn = new JTextField();
 	private JTextField id = new JTextField();
+    static JTextField archive_text = new JTextField();
 	
 	private JButton regbtn;
 	private JButton HomeIcon;
 	private JButton upbtn;
 	private JButton delbtn;
+	private JButton archivebtn;
 	
 	static JScrollPane scroll;
+	JScrollPane scroll_table;
 	
 	private ImageIcon img_home1;
 	private ImageIcon img_home2;
@@ -81,6 +86,9 @@ class Role {
 	static int flagtable = 0;
 	static int name_table;
 	static int lastClicktable;
+	
+	private DefaultTableModel tableModel;
+	private JTable table;
 	
 	Role() {
 	
@@ -322,6 +330,41 @@ class Role {
 		panel_reg.add(delbtn);
 		panel_reg.setLayout(null);
 		
+		archive_text.setBounds(870,760,220,50);
+		
+		archivebtn = new JButton();
+		archivebtn.setText("АРХИВ");
+		archivebtn.setBounds(870,800,220,50);
+		archivebtn.setFocusPainted(false);
+		archivebtn.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				
+				tableModel = new DefaultTableModel();
+				table = new JTable(tableModel);
+				tableModel.addColumn("Сметка");
+				tableModel.addColumn("МАСА");
+				tableModel.addColumn("Сервитьор");
+				tableModel.addColumn("ястие/напитка");
+				tableModel.addColumn("Дата");
+				
+				SQL_Handler.showArchiveOrders(table, tableModel);
+				
+				scroll_table = new JScrollPane(table);
+				scroll_table.setBounds(300, 300, 600, 100);
+				scroll_table.setVisible(true);
+				
+				Profilepanel.add(scroll_table);
+			}
+		});
+		
+		scroll_table = new JScrollPane(table);
+		scroll_table.setBounds(300, 300, 600, 100);
+		scroll_table.setVisible(false);
+		
+		Profilepanel.add(archive_text);
+	    Profilepanel.add(archivebtn);
 		Profilepanel.add(panel_reg);
 		Profilepanel.add(panel_boss);
 		
@@ -503,7 +546,8 @@ class Role {
 							String strid_table = file.getName().substring(0, dotIndex2-1);
 							name_table = Integer.parseInt(strid_table);
 							lastClicktable = name_table;
-							ReserveTable.table(name_table);
+							ReserveTable table = new ReserveTable();
+							table.table();
 							
 						}
 
@@ -533,7 +577,7 @@ class Role {
 						
 					});
 			        
-			     
+					
 				    
 					imagePanel.add(imgLabel);
 				
@@ -546,17 +590,13 @@ class Role {
 			}
 		}
 		
-		
-		
 		scroll = new JScrollPane(imagePanel);
 		scroll.setBounds(650, 270, 500, 500); 
 		RestaurantMain.Homepanel.add(scroll);
 		
+	    Role.scroll.revalidate();
+	    Role.scroll.repaint();
 		
-		
-		
-	}
+		}
 	
 }
-
-
