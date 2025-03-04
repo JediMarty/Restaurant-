@@ -36,17 +36,22 @@ class DrinkMenu {
 
 	private JFrame drinkframe;
 	private JPanel imagePanel;
-	JPanel imageContainer;
-	JLabel imgLabel;
-	JTextField search;
+	private JPanel imageContainer;
+	private JLabel imgLabel;
+	private JTextField search;
 	private final String SAVE_DIR = "Menu_drink";
-	String text;
-	String money;
-	Double price;
+	private String text;
+	private String price;
+	private String fileNameToSearch;
+	static String item;
+	private String sql_MENU_ITEMS;
 	
-	String idbcURL = "jdbc:oracle:thin:@localhost:1521:XE";
-	String user = "marti";
-	String password = "marti";
+	private int dotIndex;
+	
+	private String idbcURL = "jdbc:oracle:thin:@localhost:1521:XE";
+	private String user = "marti";
+	private String password = "marti";
+	JScrollPane scroll;
 	
 	DrinkMenu() {
 		init();
@@ -58,7 +63,7 @@ class DrinkMenu {
 		imagePanel.setLayout(new GridLayout(0,4,10,10));
         imagePanel.setBackground(Color.orange);
 	
-        JScrollPane scroll = new JScrollPane(imagePanel);
+        scroll = new JScrollPane(imagePanel);
         
         search = new JTextField();
         
@@ -69,7 +74,7 @@ class DrinkMenu {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				
-				search(); //Method for searching in the drink menu! 
+				search(); //Method for searching in food menu! 
 				
 			}
 		});
@@ -120,10 +125,10 @@ class DrinkMenu {
 		if (result == JFileChooser.APPROVE_OPTION) { //If the user selects an image, and clicks OK!
 			
 			File file = filechooser.getSelectedFile();
-			text = JOptionPane.showInputDialog("Въведете име на питието");
-			money = JOptionPane.showInputDialog("Въведете цена");
+			text = JOptionPane.showInputDialog("Въведете име на ястието");
+			price = JOptionPane.showInputDialog("Въведете цена");
 			
-			dataPrice(text,money);
+			addItemtoDB(text,price);
 			
 			if (text != null) {
 				
@@ -165,7 +170,7 @@ class DrinkMenu {
 		}
 	}
 	
-private void dataPrice(String filename, String money) {
+	private void addItemtoDB(String filename, String money) {
 		
 		try {
 			Connection conn = DriverManager.getConnection(idbcURL,user,password);
@@ -173,9 +178,9 @@ private void dataPrice(String filename, String money) {
 			PreparedStatement statement;
 		    ResultSet result;
 		    
-		    String sql = "{CALL P_MENU_ITEMS(?, ?)}"; //The insert procedure
+		    sql_MENU_ITEMS = "{CALL P_MENU_ITEMS(?, ?)}"; //The insert procedure
 			
-			statement = conn.prepareStatement(sql);
+			statement = conn.prepareStatement(sql_MENU_ITEMS);
 			statement.setString(1, filename);
 			statement.setString(2, money);
 			result = statement.executeQuery(); 
@@ -187,49 +192,109 @@ private void dataPrice(String filename, String money) {
 			er.printStackTrace();
 		} 
 		
-}
 	
-private void deldataPrice(File file) {
-	
-	try {
-		Connection conn = DriverManager.getConnection(idbcURL,user,password);
-	
-		PreparedStatement statement;
-	    ResultSet result;
-
-	    int dotIndex = file.getName().lastIndexOf(".");
-		String fileNameToSearch = file.getName().substring(0, dotIndex-1); //Get the file name without .png!
-	    
-	    String sqlQ = "SELECT * FROM MENU_ITEMS";
-	    
-	    String sql = "{CALL D_MENU_ITEMS(?)}"; //The delete procedure
 		
-		statement = conn.prepareStatement(sqlQ);
-		result = statement.executeQuery(); 
-
-		if (result.next()) //Results crawling
-		{
-			String storedname = result.getString("item"); 
+		/*
+		price = Double.parseDouble(money);
+		
+		if (!pricesfile.exists()) {
 			
-			if (fileNameToSearch.contains(storedname)) {
+			try {
+				pricesfile.createNewFile();
+			
+			}catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		
+		try {
+			FileWriter write = new FileWriter(pricesfile,true); //true = open the file for adding not overwriting!
+			write.write(price +" - " + filename + "\n");
+			write.close();
+		
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		*/
+		
+	}
+	
+	private void delItemfromDB(File file) {
+		
+		try {
+			Connection conn = DriverManager.getConnection(idbcURL,user,password);
+		
+			PreparedStatement statement;
+		    ResultSet result;
+	
+		    int dotIndex = file.getName().lastIndexOf(".");
+			String fileNameToSearch = file.getName().substring(0, dotIndex-1); //Get the file name without .png!
+		    
+		    String sqlQ = "SELECT * FROM MENU_ITEMS WHERE item = ?";
+		    
+		    sql_MENU_ITEMS = "{CALL D_MENU_ITEMS(?)}"; //The delete procedure
+			
+			statement = conn.prepareStatement(sqlQ);
+			statement.setString(1, fileNameToSearch);
+			result = statement.executeQuery(); 
+	
+			if (result.next()) //Results crawling
+			{
 				int storedpostion = result.getInt("mID"); //ID where is the item who needs to be deleted!
 				
-				statement = conn.prepareStatement(sql);
+				statement = conn.prepareStatement(sql_MENU_ITEMS);
 				statement.setInt(1, storedpostion);
 				result = statement.executeQuery(); 
+				
 			}
 			
+			conn.close();
+			
+		} catch (SQLException er) {
+			// TODO Auto-generated catch block
+			er.printStackTrace();
+		} 
+		
+		
+	/*
+			String readname;
+			File tempfile = new File("temp.txt");
+			File pricesfile = new File("prices.txt");
+			try {
+			Scanner reader = new Scanner(pricesfile);
+			FileWriter write = new FileWriter(tempfile,true);
+			
+			int dotIndex = file.getName().lastIndexOf(".");
+			String fileNameToSearch = file.getName().substring(0, dotIndex-1);
+			
+			while(reader.hasNextLine()) {
+				
+				readname = reader.nextLine();
+				
+				if (readname.contains(fileNameToSearch)) {
+					
+					continue; //Skip the line that needs to be deleted!
+					}
+				
+				write.write(readname + "\n");
+						
+			}
+			
+			write.close();
+			reader.close();
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
-	
-		
-		conn.close();
-		
-	} catch (SQLException er) {
-		// TODO Auto-generated catch block
-		er.printStackTrace();
-	} 
-	
-}
+			pricesfile.delete();
+			tempfile.renameTo(pricesfile);
+			*/
+	}
 	
 	private void delete(File file, JPanel panel) {
 		
@@ -237,12 +302,15 @@ private void deldataPrice(File file) {
 		
 		if (confirm == JOptionPane.YES_OPTION) {
 			
+			delItemfromDB(file);
 			file.delete(); 
-			imagePanel.remove(panel); //remove from the interface
-			deldataPrice(file);
+			//imagePanel.remove(panel); //remove from the interface
+			//imagePanel.revalidate();
+			//imagePanel.repaint();
+			//scroll.revalidate();
+			//scroll.repaint();
 			drinkframe.dispose();
-			new DrinkMenu();
-			
+		    new DrinkMenu();
 		}
 		
 		else {
@@ -258,28 +326,30 @@ private void deldataPrice(File file) {
 		
 		for (File file : dir.listFiles() ) {
 			
-			if (file.getName().toLowerCase().contains(search.getText().toLowerCase())) {
+			dotIndex = file.getName().lastIndexOf(".");
+			fileNameToSearch = file.getName().substring(0, dotIndex-1);
+			// replaceAll("\\s+", "") - remove all spaces!
+			if (fileNameToSearch.replaceAll("\\s+", "").toLowerCase().contains(search.getText().toLowerCase())) {
 				displayImage(file,file.getName());
 				
 			}
-			
-			else {
-				JOptionPane.showMessageDialog(drinkframe, "Не е намерено!", "Грешка", JOptionPane.OK_OPTION);
-			}
 		}
+		
 	}
 	
-	public void orderFood() {
+	public void orderDrink(String fileNameToSearch) {
 		
 		imgLabel.setCursor(new Cursor(Cursor.HAND_CURSOR));
 		imgLabel.addMouseListener(new MouseListener() {
 
 			@Override
 			public void mouseClicked(MouseEvent e) {
-				int confirm = JOptionPane.showConfirmDialog(drinkframe, "Добавено - " + text, "Добавяне", JOptionPane.YES_NO_OPTION);
+				int confirm = JOptionPane.showConfirmDialog(drinkframe, "Добавено", "Добавяне", JOptionPane.YES_NO_OPTION);
 				
 				if (confirm == JOptionPane.YES_OPTION) {
-					
+					item = fileNameToSearch;
+				
+					ReserveTable.order();
 				}
 				
 				else {
@@ -312,6 +382,11 @@ private void deldataPrice(File file) {
 			}
 			
 		});
+		
+		if (ReserveTable.tableframe != null) {
+			ReserveTable.tableframe.dispose();
+			
+			}
 	}
 	
 	private void displayImage(File file, String text) {
@@ -326,10 +401,13 @@ private void deldataPrice(File file) {
 			}
 			
 			ImageIcon image = new ImageIcon(img.getScaledInstance(150, 150, Image.SCALE_SMOOTH));
-		
+
+			int dotIndex = file.getName().lastIndexOf(".");
+			fileNameToSearch = file.getName().substring(0, dotIndex-1);
+			
 		    imgLabel = new JLabel(image);
 		    imgLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-			JLabel txtLabel = new JLabel(text);
+			JLabel txtLabel = new JLabel(fileNameToSearch);
 			txtLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
 			
 			ImageIcon delIcon = new ImageIcon("delete.png");
@@ -368,21 +446,6 @@ private void deldataPrice(File file) {
 			e.printStackTrace();
 		}
 		
-		orderFood(); //Method for ordering for the food menu, by clicking the image of the meal!
+		orderDrink(fileNameToSearch); //Method for ordering for the food menu, by clicking the image of the meal!
 	}
 }
-
-
-
-	
-
-	
-
-
-
-
-
-	
-
-	
-
