@@ -165,17 +165,8 @@ public class RestaurantMain {
 		button_del_table.setBorderPainted(false);
 		button_del_table.setContentAreaFilled(false);
 		button_del_table.setCursor(new Cursor(Cursor.HAND_CURSOR));
-		button_del_table.addActionListener(new ActionListener() {
-
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				
-				ReserveTable.deltable();
-				
-			}
-			
-		});
-		
+		button_del_table.addMouseListener(click_deltableicon);
+	
 		Homepanel = new JPanel();
 		Homepanel.add(button_del_table);
 		Homepanel.add(addtable); 
@@ -188,7 +179,7 @@ public class RestaurantMain {
 		Homepanel.add(logoframe);
         Homepanel.setLayout(null);
 		Homepanel.setBackground(Color.WHITE);
-		cardPanel.add(Homepanel);
+		cardPanel.add(Homepanel); 
 		cardPanel.add(Role.Profilepanel);
 		
 		//The Window
@@ -349,6 +340,43 @@ public class RestaurantMain {
 		
 	};
 
+	MouseListener click_deltableicon = new MouseListener() {
+
+		@Override
+		public void mouseClicked(MouseEvent e) {
+			
+			if (Role.flagtable == 1) {
+			ReserveTable.deltable();
+			
+			}
+		}
+
+		@Override
+		public void mousePressed(MouseEvent e) {
+			// TODO Auto-generated method stub
+			
+		}
+
+		@Override
+		public void mouseReleased(MouseEvent e) {
+			// TODO Auto-generated method stub
+			
+		}
+
+		@Override
+		public void mouseEntered(MouseEvent e) {
+			// TODO Auto-generated method stub
+			
+		}
+
+		@Override
+		public void mouseExited(MouseEvent e) {
+			// TODO Auto-generated method stub
+			
+		}
+		
+	};
+	
 	public static void switch_the_scene() {
 		CardLayout cl = (CardLayout) (cardPanel.getLayout());
 		cl.next(cardPanel);
