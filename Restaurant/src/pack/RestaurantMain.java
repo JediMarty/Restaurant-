@@ -14,44 +14,44 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JPasswordField;
-import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 
 public class RestaurantMain {
 	
 	static JFrame frame = new JFrame(); //Creating the main window
-	ImageIcon logo;
-	ImageIcon menufr;
-	ImageIcon img_food1; 
-	ImageIcon img_food2;
-	ImageIcon img_drinks1;
-	ImageIcon img_drinks2;
-	ImageIcon img_waiter1;
-	ImageIcon img_waiter2;
-	ImageIcon img_addtable1;
-	ImageIcon img_addtable2;
-	static ImageIcon delIcon;
+	private ImageIcon logo;
+	private ImageIcon menufr;
+	private ImageIcon img_food1; 
+	private ImageIcon img_food2;
+	private ImageIcon img_drinks1;
+	private ImageIcon img_drinks2;
+	private ImageIcon img_waiter1;
+	private ImageIcon img_waiter2;
+	private ImageIcon img_addtable1;
+	private ImageIcon img_addtable2;
+	private ImageIcon delIcon;
 	static Font font;
 	static JTextField username;
 	static JPasswordField password;
-	JButton FoodIcon;
-	JButton DrinkIcon;
-	JButton WaiterIcon;
-	JButton loginbtn;
-	JButton addtable; 
-	static JButton button_del_table;
+	private JButton FoodIcon;
+	private JButton DrinkIcon;
+	private JButton WaiterIcon;
+	private JButton loginbtn;
+	private JButton logoutbtn;
+	private JButton addtable; 
+	private JButton button_del_table;
 	static JPanel Homepanel;
-	JPanel panel1;
-	JPanel panel_login;
-	JLabel logoframe;
-	JLabel label_user;
-	JLabel label_pass;
-	JLabel menuframe;
-	static JPanel imagePanel;
+	private JPanel panel1;
+	private JPanel panel_login;
+	private JLabel logoframe;
+	private JLabel label_user;
+	private JLabel label_pass;
+	private JLabel menuframe;
 	
-    static JScrollPane scroll;
-	
-	public static JPanel cardPanel = new JPanel(new CardLayout());
+	Login login;
+	Role role;
+    
+	private static JPanel cardPanel = new JPanel(new CardLayout());
 	
 	RestaurantMain() {
 		init();
@@ -112,21 +112,33 @@ public class RestaurantMain {
 
 		@Override
 		public void actionPerformed(ActionEvent e) {
-			new Login();
-			new Role();
+			
+			login = new Login();
+			role = new Role();
+			cardPanel.add(Role.Profilepanel);
 			
 		}
 		
 	});
 		
+		logoutbtn = new JButton();
+		logoutbtn.setText("ИЗЛЕЗ");
+		logoutbtn.setBounds(70,520,220,50);
+		logoutbtn.setFocusPainted(false);
+		logoutbtn.setBorderPainted(false);
+		logoutbtn.setContentAreaFilled(false);
+		logoutbtn.setCursor(new Cursor(Cursor.HAND_CURSOR));
+		logoutbtn.addMouseListener(click_logoutbtn);
+		
 		panel_login.setBackground(Color.orange);
 		panel_login.setLayout(null);
-		panel_login.setBounds(0,110,350,550);
+		panel_login.setBounds(0,110,350,590);
 		panel_login.add(label_user);
 		panel_login.add(username);
 		panel_login.add(label_pass);
 		panel_login.add(password);
 		panel_login.add(loginbtn);
+		panel_login.add(logoutbtn);
 		
 		menuframe.setIcon(menufr);
 		menuframe.setBounds(500,0,500,100);
@@ -180,8 +192,7 @@ public class RestaurantMain {
         Homepanel.setLayout(null);
 		Homepanel.setBackground(Color.WHITE);
 		cardPanel.add(Homepanel); 
-		cardPanel.add(Role.Profilepanel);
-		
+	
 		//The Window
 		frame.setTitle("Table Reserved");
 		frame.setSize(1520,1040);
@@ -301,7 +312,7 @@ public class RestaurantMain {
 		@Override
 		public void mouseClicked(MouseEvent e) {
 			
-			if (Role.flagtable == 1) { //Only the Boss have privilege to add more tables!
+			if (role.flagtable == 1) { //Only the Boss have privilege to add more tables!
 				
 				ReserveTable.addtable();
 			    Homepanel.remove(Role.scroll);
@@ -345,7 +356,7 @@ public class RestaurantMain {
 		@Override
 		public void mouseClicked(MouseEvent e) {
 			
-			if (Role.flagtable == 1) {
+			if (role.flagtable == 1) { //Only the Boss have privilege to delete tables!
 			ReserveTable.deltable();
 			
 			}
@@ -372,6 +383,55 @@ public class RestaurantMain {
 		@Override
 		public void mouseExited(MouseEvent e) {
 			// TODO Auto-generated method stub
+			
+		}
+		
+	};
+	
+	MouseListener click_logoutbtn = new MouseListener() {
+
+		@Override
+		public void mouseClicked(MouseEvent e) {
+			
+			username.setText("");
+			password.setText("");
+	
+			try {
+			
+			cardPanel.remove(Role.Profilepanel);
+			Homepanel.remove(Role.scroll);		
+			Role.lastClicktable = "0";
+			
+			
+			} catch (NullPointerException e1){
+				
+			}
+			
+			frame.revalidate();
+			frame.repaint();
+		}
+
+		@Override
+		public void mousePressed(MouseEvent e) {
+			// TODO Auto-generated method stub
+			
+		}
+
+		@Override
+		public void mouseReleased(MouseEvent e) {
+			// TODO Auto-generated method stub
+			
+		}
+
+		@Override
+		public void mouseEntered(MouseEvent e) {
+			logoutbtn.setForeground(new Color (240,255,255)); //The color is azure
+			
+		}
+
+		@Override
+		public void mouseExited(MouseEvent e) {
+			logoutbtn.setForeground(Color.black); 
 			
 		}
 		
