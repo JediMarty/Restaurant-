@@ -5,6 +5,8 @@ import java.awt.Cursor;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -13,12 +15,9 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Timestamp;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Random;
 import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
@@ -43,10 +42,8 @@ class ReserveTable {
 	
 	static File newfile;
 	
-	private static String sql;
 	private static String sqlQ;
-	private static String sql_order;
-	private static String sql_order_arch;
+
 	private static PreparedStatement statement;
 	private static ResultSet result;
 	
@@ -55,11 +52,6 @@ class ReserveTable {
 	private static int id;
 	private static int id_table;
 	private static int billName;
-	private static String stored_ordersid;
-	private static String stored_tname;
-	private static String stored_firstname;
-	private static String stored_item;
-	private static String stored_time;
 	
 	static LocalDateTime datetime = LocalDateTime.now();
 	
@@ -67,21 +59,26 @@ class ReserveTable {
 	private static JLabel label_orderid = new JLabel();
 	private static JLabel label_mealname = new JLabel();
 	public static JTextField orderid = new JTextField();
-	private static JComboBox<String> mealname_combo = new JComboBox<>();
+	static JComboBox<String> mealname_combo = new JComboBox<>();
 	private JButton button_update = new JButton();
 	private JButton button_delete = new JButton();
-	private static JButton button_get_bill = new JButton();
-	private static JButton button_final = new JButton();
-	private static Map<String, Integer> dataMap = new HashMap<>();
+	private JButton button_get_bill = new JButton();
+	private JButton button_final = new JButton();
+	private JButton button_music = new JButton();
+	
+	static Map<String, Integer> dataMap = new HashMap<>();
 	
     private static DefaultTableModel tableModel;
 	private static JTable table;
 	private static JScrollPane scroll;
 	
+	private ImageIcon img_music1 = new ImageIcon("music1.png");
+	private ImageIcon img_music2 = new ImageIcon("music2.png");
+	
 	public void table() {
 		
 		String status = "Свободна";
-		
+		//if the selected table is not taken by other waiter!
 		if (status.equals(SQL_Handler.checkTableAvailable1()) || Login.resultHashedPass.equals(SQL_Handler.checkTableAvailable2())) {
 		
 		try {
@@ -122,7 +119,7 @@ class ReserveTable {
 		mealname_combo.setFont(RestaurantMain.font);
 		
 	    button_update.setText("Промени");
-		button_update.setBounds(45,390,220,50);
+		button_update.setBounds(45,360,220,50);
 		button_update.addActionListener(new ActionListener() {
 
 			@Override
@@ -132,68 +129,10 @@ class ReserveTable {
 				
 				String orderIdString = orderid.getText();
 
-				try {
-					Connection conn = DriverManager.getConnection(idbcURL,user,password);
-				
-					int id_order = Integer.parseInt(orderIdString);
-				
-					sql_order = "{CALL UP_ORDERS(?,?)}"; //The update procedure
-					
-					String selecteditem = mealname_combo.getSelectedItem().toString();
-					int id_item = dataMap.get(selecteditem);
-				
-					statement = conn.prepareStatement(sql_order);
-					statement.setInt(1, id_order);
-					statement.setInt(2, id_item);
-				    result = statement.executeQuery();
-				    
-				    sql = "SELECT TID FROM RTABLES "
-							+ "WHERE TNAME = ? "; 
-					
-					statement = conn.prepareStatement(sql);
-					statement.setInt(1, Role.lastClicktable);
-			        result = statement.executeQuery();
-			        
-			        int id_table = 0;
-			        
-			        if (result.next()) {
-			        	id_table = result.getInt("TID");
-			        	
-			        }
-				    
-                    sqlQ= "SELECT TID, ARCHIVEID "
-                    		+ "FROM ORDERS_ARCHIVE "
-                    		+ "WHERE TID = ? "; 
-				    
-				    statement = conn.prepareStatement(sqlQ);
-				    statement.setInt(1, id_table);
-				    result = statement.executeQuery();
-				    
-				    int id_arhive = 0;
-				    
-				    if (result.next()) {
-				    	id_arhive = result.getInt("ARCHIVEID");
-				    }
-				    
-				    sql_order_arch = "{CALL UP_ORDERS_ARCHIVE(?,?)}"; //The update procedure
-				    
-				    statement = conn.prepareStatement(sql_order_arch);
-				    statement.setInt(1, id_arhive);
-				    statement.setInt(2, id_item);
-				    result = statement.executeQuery();
-					
-				    conn.close();
-				} catch (SQLException e1) {
-					// TODO Auto-generated catch block
-					e1.printStackTrace();
-					JOptionPane.showMessageDialog(tableframe, "SQL грешка!", "Грешка", JOptionPane.OK_OPTION);
-				} catch (Exception e1) {
-					
-					JOptionPane.showMessageDialog(tableframe, "Няма избрано ID!", "Грешка", JOptionPane.OK_OPTION);
-				}
+				SQL_Handler.updateOrder(orderIdString);
 				
 				tableModel.setRowCount(0); //delete rows for the new ones with the changes!
-				SQL_Handler.showOrder(table, tableModel);
+				SQL_Handler.showOrder(tableModel);
 				
 				}
 				
@@ -202,42 +141,20 @@ class ReserveTable {
 		});
 	    
 		button_delete.setText("Изтрии поръчка");
-		button_delete.setBounds(45,450,220,50);
+		button_delete.setBounds(45,420,220,50);
 		button_delete.addActionListener(new ActionListener() {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				
 				if (SQL_Handler.changesProtector() != 1) {
-				
-				String orderIdString = orderid.getText();
-
-			
-				
-				try { 
-					Connection conn = DriverManager.getConnection(idbcURL,user,password);
-				
-					int id_order = Integer.parseInt(orderIdString);
-				
-					sql_order = "{CALL D_ORDERS(?)}"; //The delete procedure
 					
-					statement = conn.prepareStatement(sql_order);
-					statement.setInt(1, id_order);
-			        result = statement.executeQuery();
+					String orderIdString = orderid.getText();
 					
-				    conn.close();
-				} catch (SQLException e1) {
-					
-					e1.printStackTrace();
-					JOptionPane.showMessageDialog(tableframe, "SQL грешка!", "Грешка", JOptionPane.OK_OPTION);
-				} 
-				catch (Exception e1) {
-					// TODO Auto-generated catch block
-					JOptionPane.showMessageDialog(tableframe, "Добавянето е прекратено!", "Грешка", JOptionPane.OK_OPTION);
-				} 
+					SQL_Handler.deleteOrder(orderIdString);
 				
 				tableModel.setRowCount(0); //delete rows!
-				SQL_Handler.showOrder(table, tableModel);
+				SQL_Handler.showOrder(tableModel);
 				
 			}
 				
@@ -247,65 +164,30 @@ class ReserveTable {
 		});
 		
 		button_get_bill.setText("СМЕТКА");
-		button_get_bill.setBounds(45,510,220,50);
+		button_get_bill.setBounds(45,480,220,50);
 		button_get_bill.addActionListener(new ActionListener() {
        
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				
-				if (tableModel.getRowCount() !=0) {
-				
-				tableModel.setColumnCount(0); //delete columns for the new ones!
-				tableModel.setRowCount(0); //delete rows for the new ones!
-				
-				tableModel.addColumn("ястие/напитка");
-				tableModel.addColumn("Брой");
-				tableModel.addColumn("Сума");
-				
-				try {
+				if (tableModel.getRowCount() !=0) { 
 					
-					Connection conn = DriverManager.getConnection(idbcURL,user,password);
+					tableModel.setColumnCount(0); //delete columns for the new ones!
+					tableModel.setRowCount(0); //delete rows for the new ones!
 					
-					sqlQ = "SELECT m.item AS Food, COUNT(m.item), SUM(m.price) AS Price "
-							+ "FROM orders o "
-							+ "JOIN menu_items m ON o.mid = m.mid "
-							+ "JOIN rtables t ON o.tid = t.tid "
-							+ "WHERE t.TNAME = ? "
-							+ "GROUP BY m.item "
-							+ "UNION ALL "
-						    + "SELECT 'Обща сума' AS Food, COUNT(m.item), SUM(m.price) AS Price "
-							+ "FROM orders o "
-							+ "JOIN menu_items m ON o.mid = m.mid "
-							+ "JOIN rtables t ON o.tid = t.tid "
-							+ "WHERE t.TNAME = ? ";
+					tableModel.addColumn("ястие/напитка");
+					tableModel.addColumn("Брой");
+					tableModel.addColumn("Сума");
 					
-					statement = conn.prepareStatement(sqlQ);
-					statement.setInt(1, Role.lastClicktable);
-					statement.setInt(2, Role.lastClicktable);
-				    result = statement.executeQuery();
-			
-				   while (result.next()) {
-				    	
-				    	String item = result.getString("food");
-				    	String str_price = result.getString("price");
-				    	Double price = Double.valueOf(str_price);
-				    	int count = result.getInt("COUNT(m.item)");
-				    	tableModel.addRow(new Object[] {item, count, String.format("%.2f",price)});
-				    }
-				   
-				   conn.close();
-				} catch (SQLException e1) {
-					// TODO Auto-generated catch block
-					e1.printStackTrace();
-				}
-				
+					SQL_Handler.billOrder(tableModel);
+					
 				}
 				
 			}
 		});
 		
 		button_final.setText("Приключване");
-		button_final.setBounds(45,570,220,50);
+		button_final.setBounds(45,540,220,50);
 		button_final.addActionListener(new ActionListener() {
        
 			@Override
@@ -325,45 +207,15 @@ class ReserveTable {
 		tableModel.addColumn("Сервитьор");
 		tableModel.addColumn("ястие/напитка");
 		tableModel.addColumn("Дата");
-		/*
-		try {
-			Connection conn = DriverManager.getConnection(idbcURL,user,password);
 		
-			String sql = "SELECT o.ORDERSID ,b.bill, t.TNAME, e.FIRSTNAME, m.ITEM , o.TIMEORDERING "
-					+ "FROM ORDERS o "
-					+ "JOIN table_bill b "
-					+ "ON o.BILLID = b.BILLID "
-					+ "JOIN RTABLES t "
-					+ "ON o.TID = t.TID "
-					+ "JOIN EMPLOYEES e "
-					+ "ON o.ID = e.ID "
-					+ "JOIN MENU_ITEMS m "
-					+ "ON o.MID = m.MID "
-					+ "WHERE TNAME = ? ";
-			
-			statement = conn.prepareStatement(sql);
-			statement.setInt(1, Role.lastClicktable);
-		    result = statement.executeQuery();
-			
-		    while (result.next()) {
-		    	int num = result.getInt("ORDERSID");
-		    	String bill = result.getString("bill");
-		    	String rtable = result.getString("TNAME");
-		    	String waiter = result.getString("FIRSTNAME");
-		    	String item = result.getString("ITEM");
-		    	String time = result.getString("TIMEORDERING");
-		    	
-		    	tableModel.addRow(new Object[] {num, bill, rtable, waiter, item, time});
-		    }
+		button_music.setBounds(115,590, 70, 70);
+		button_music.setIcon(img_music1);
+		button_music.setBorderPainted(false);
+		button_music.setContentAreaFilled(false);
+		button_music.setCursor(new Cursor(Cursor.HAND_CURSOR));
+		button_music.addMouseListener(click_musicicon);
 		
-			conn.close();
-			
-		} catch (SQLException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		}
-	*/
-		SQL_Handler.showOrder(table, tableModel);
+		SQL_Handler.showOrder(tableModel);
 		
 		panel.setBackground(Color.orange);
 		panel.setLayout(null);
@@ -376,6 +228,7 @@ class ReserveTable {
 		panel.add(button_delete);
 		panel.add(button_get_bill);
 		panel.add(button_final);
+		panel.add(button_music);
 		
 		tableframe = new JFrame();
 		tableframe.setTitle("Table");
@@ -384,7 +237,7 @@ class ReserveTable {
 		tableframe.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);    
 		tableframe.setLayout(null);
 		scroll = new JScrollPane(table);
-		scroll.setBounds(10, 10, 500, 100);
+		scroll.setBounds(0, 0, 800, 120);
 		tableframe.add(scroll);
 		tableframe.add(panel);
 		tableframe.revalidate(); tableframe.repaint();
@@ -402,146 +255,7 @@ class ReserveTable {
 		
 		int stored_IDbill = 0000;
 		
-		try {
-			Connection conn = DriverManager.getConnection(idbcURL,user,password);
-			
-			sqlQ = "SELECT TID, TNAME "
-					+ "FROM RTABLES "
-		            + "WHERE TNAME = ? ";
-			
-			statement = conn.prepareStatement(sqlQ);
-			statement.setInt(1, Role.lastClicktable);
-			result = statement.executeQuery();
-			
-			if (result.next()) {
-				String str_id_table = result.getString("TID");
-				id_table = Integer.parseInt(str_id_table);
-			}
-			
-			sql = "{CALL PSTATUSB(?)}"; // The procedure for status of table = BUSY!
-			
-			statement = conn.prepareStatement(sql);
-			statement.setInt(1, id_table);
-			result = statement.executeQuery();
-			
-			sqlQ = "SELECT ID, Firstname "
-					+ "FROM EMPLOYEES "
-		            + "WHERE Firstname = ?";
-			
-			statement = conn.prepareStatement(sqlQ);
-			statement.setString(1, RestaurantMain.username.getText());
-			result = statement.executeQuery();
-		
-			if (result.next()) {
-				
-				String str_eid = result.getString("ID");
-				stored_eid = Integer.parseInt(str_eid);
-				
-			}
-			
-			sqlQ = "SELECT MID, ITEM "
-					+ "FROM MENU_ITEMS "
-		            + "WHERE ITEM = ? OR ITEM = ? ";
-			
-			statement = conn.prepareStatement(sqlQ);
-			statement.setString(1, FoodMenu.item); 
-			statement.setString(2, DrinkMenu.item);
-			result = statement.executeQuery();
-			
-			if (result.next()) {
-				
-				String str_mid = result.getString("MID");
-				stored_mid = Integer.parseInt(str_mid);
-				
-			}
-			
-			DateTimeFormatter format = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-			String formatted_datetime = datetime.format(format);
-			
-			sqlQ = "SELECT t.TNAME, b.bill "
-					+ "FROM ORDERS o "
-					+ "JOIN rtables t ON o.tid = t.tid "
-					+ "JOIN TABLE_BILL b  ON o.billid = b.billid "
-					+ "WHERE TNAME = ? ";
-			
-			statement = conn.prepareStatement(sqlQ);
-			statement.setInt(1, Role.lastClicktable);
-			result = statement.executeQuery();
-			
-			if (result.next()) {
-				billName = result.getInt("bill");
-				
-			}
-			
-			else {
-			Random r = new Random();
-			String randomNumber = String.format("%04d", r.nextInt(10001)); //Bill code with four numbers!
-			billName = Integer.parseInt(randomNumber);
-			
-			sqlQ = "SELECT BILLID, BILL "
-					+ "FROM TABLE_BILL "
-		            + "WHERE BILL = ?";
-			
-			statement = conn.prepareStatement(sqlQ);
-			statement.setInt(1, billName);
-			result = statement.executeQuery();
-			
-			while (result.next()) {
-				randomNumber = String.format("%04d", r.nextInt(10001)); //Bill code with four numbers!
-				billName = Integer.parseInt(randomNumber);
-				
-				statement = conn.prepareStatement(sqlQ);
-				result = statement.executeQuery();
-				
-			}
-			
-			String sql_table_bill = "{CALL P_TABLE_BILL(?)}"; //The insert procedure
-			
-			statement = conn.prepareStatement(sql_table_bill);
-			statement.setInt(1, billName);
-			result = statement.executeQuery();
-			}
-			
-			sqlQ = "SELECT BILLID, BILL "
-					+ "FROM TABLE_BILL "
-		            + "WHERE BILL = ?";
-			
-			statement = conn.prepareStatement(sqlQ); // Execute the same query(query before the insert procedure!) to get the bill ID!
-			statement.setInt(1, billName);
-			result = statement.executeQuery();
-			
-			if (result.next()) {
-				String str_IDBILL = result.getString("BILLID");
-				stored_IDbill = Integer.parseInt(str_IDBILL);
-			}
-			
-			sql_order = "{CALL P_ORDERS(?,?,?,?,?)}"; //The insert procedure
-			
-			statement = conn.prepareStatement(sql_order);
-			statement.setInt(1, id_table);  
-			statement.setInt(2, stored_eid); 
-			statement.setInt(3, stored_mid);  
-		    statement.setTimestamp(4, Timestamp.valueOf(formatted_datetime)); // TO_CHAR (o.TIMEORDERING, 'YYYY-MM-DD HH24:MI:SS')
-			statement.setInt(5, stored_IDbill); 
-			result = statement.executeQuery(); 
-			
-            sql_order_arch = "{CALL P_ORDERS_ARCHIVE(?,?,?,?,?)}"; //The insert procedure of ORDERS_ARCHIVE!
-			
-			statement = conn.prepareStatement(sql_order_arch);
-			statement.setInt(1, id_table);  
-			statement.setInt(2, stored_eid); 
-			statement.setInt(3, stored_mid);  
-		    statement.setTimestamp(4, Timestamp.valueOf(formatted_datetime)); // TO_CHAR (o.TIMEORDERING, 'YYYY-MM-DD HH24:MI:SS')
-			statement.setInt(5, stored_IDbill); 
-			result = statement.executeQuery(); 
-			
-			conn.close();
-		
-		} catch (SQLException e) {
-			
-			e.printStackTrace();
-			JOptionPane.showMessageDialog(tableframe, "SQL грешка!", "Грешка", JOptionPane.OK_OPTION);
-		}
+		SQL_Handler.addOrder(id_table, stored_eid, stored_mid, datetime, billName, stored_IDbill);
 		
 		DrinkMenu.item = ""; //Clear the DrinkMenu item
 		FoodMenu.item = ""; //Clear the FoodMenu item
@@ -580,24 +294,7 @@ class ReserveTable {
 				newfile = new File(SAVE_DIR, strnumber + " .png");
 				ImageIO.write(img, "png", newfile); //save the img in the new file!
 				
-				try {
-					Connection conn = DriverManager.getConnection(idbcURL,user,password);
-					
-					sql = "{CALL P_RTABLES(?,?)}"; //The insert procedure
-					
-					statement = conn.prepareStatement(sql);
-					statement.setString(1, strnumber);
-					statement.setString(2, status);
-					
-					result = statement.executeQuery(); 
-				
-					conn.close();
-					
-				} catch (SQLException e) {
-				
-				e.printStackTrace();
-				JOptionPane.showMessageDialog(tableframe, "SQL грешка!", "Грешка", JOptionPane.OK_OPTION);
-			}
+				SQL_Handler.sql_addTable(strnumber, status);
 				
 			} catch (IOException e) {
 			
@@ -631,36 +328,7 @@ class ReserveTable {
 		lastFile.delete(); 
 		RestaurantMain.Homepanel.remove(Role.scroll);
 		
-		try {
-			
-			Connection conn = DriverManager.getConnection(idbcURL,user,password);
-			
-			String sql = "SELECT TID, TNAME FROM RTABLES "
-					+ "WHERE TNAME = ? ";
-			
-			statement = conn.prepareStatement(sql);
-			statement.setInt(1, number);
-	        result = statement.executeQuery();
-			
-	        
-	        if (result.next()) {
-	        	String str_idTable = result.getString("TID");
-	        	int idTable = Integer.parseInt(str_idTable);
-	        	 
-	            String sql_RTABLES = "{CALL D_RTABLES(?)}"; //The delete procedure
-					
-				statement = conn.prepareStatement(sql_RTABLES);
-			    statement.setInt(1, idTable);
-			    result = statement.executeQuery();
-	        }
-	        
-	        
-			conn.close();
-		} catch (SQLException e1) {
-			
-			e1.printStackTrace();
-			JOptionPane.showMessageDialog(tableframe, "File грешка!", "Грешка", JOptionPane.OK_OPTION);
-		}
+		SQL_Handler.sql_deleteTable(number);
 		
 		Role.displaytables();
 		Role.imagePanel.revalidate();
@@ -669,5 +337,57 @@ class ReserveTable {
 		Role.scroll.repaint();
 		
 	}
+	
+	MouseListener click_musicicon = new MouseListener() {
+
+		@Override
+		public void mouseClicked(MouseEvent e) {
+			
+			button_music.setIcon(img_music2);
+			// Discount % for the orchestra!
+			String response = JOptionPane.showInputDialog("НАМАЛЕНИЕ с:");
+			
+			int percentage = Integer.parseInt(response);// Converting String to int!
+			
+			if (tableModel.getRowCount() !=0) {
+				
+				tableModel.setColumnCount(0); //delete columns for the new ones!
+				tableModel.setRowCount(0); //delete rows for the new ones!
+				
+				tableModel.addColumn("ястие/напитка");
+				tableModel.addColumn("Брой");
+				tableModel.addColumn("Сума");
+				
+				SQL_Handler.music_discount(tableModel, percentage);
+				
+				}
+
+		}
+
+		@Override
+		public void mousePressed(MouseEvent e) {
+			// TODO Auto-generated method stub
+			
+		}
+
+		@Override
+		public void mouseReleased(MouseEvent e) {
+			// TODO Auto-generated method stub
+			
+		}
+
+		@Override
+		public void mouseEntered(MouseEvent e) {
+			button_music.setIcon(img_music2);
+			
+		}
+
+		@Override
+		public void mouseExited(MouseEvent e) {
+			button_music.setIcon(img_music1);
+			
+		}
+		
+	};
 	
 }
