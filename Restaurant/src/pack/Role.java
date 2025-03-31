@@ -54,12 +54,12 @@ class Role {
 	private JLabel idl = new JLabel();
 	static JLabel imgLabel;
 	
-	private static JComboBox<String> combo = new JComboBox<>();
+	private JComboBox<String> combo = new JComboBox<>();
 	
-	private static JTextField name = new JTextField();
-	private static JTextField lastname = new JTextField();
+	private JTextField name = new JTextField();
+	private JTextField lastname = new JTextField();
 	private static JTextField pass = new JTextField();
-	private static JTextField egn = new JTextField();
+	private JTextField egn = new JTextField();
 	private JTextField id = new JTextField();
     static JTextField archive_text = new JTextField();
 	
@@ -68,9 +68,11 @@ class Role {
 	private JButton upbtn;
 	private JButton delbtn;
 	private JButton archivebtn;
+	private JButton archivedelbtn;
+	private JButton archiveemplobtn;
 	
 	static JScrollPane scroll;
-	JScrollPane scroll_table;
+	private JScrollPane scroll_table;
 	
 	private ImageIcon img_home1;
 	private ImageIcon img_home2;
@@ -78,14 +80,12 @@ class Role {
 	private String idbcURL = "jdbc:oracle:thin:@localhost:1521:XE";
 	private String user = "marti";
 	private String password = "marti";
-    private String sql_employees;
-	private String str_selectedid;
+    private String str_selectedid;
     
 	private int id_emplo;
     private int selectedid;
-	static int flagtable = 0;
-	static int name_table;
-	static int lastClicktable;
+	int flagtable = 0;
+	static String lastClicktable;
 	
 	private DefaultTableModel tableModel;
 	private JTable table;
@@ -95,9 +95,6 @@ class Role {
 		try {
 			Connection conn = DriverManager.getConnection(idbcURL,user,password);
 		
-			
-			//Statement statement2 = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
-			
 			sql = "SELECT e.Firstname, p.Pos_NAME "
 					+ "FROM EMPLOYEES e "
 					+ "JOIN positions p ON e.pos_id = p.pos_id "
@@ -109,11 +106,6 @@ class Role {
 			
 			result = statement.executeQuery(); 
 			
-			/*
-			result = statement.executeQuery("SELECT e.Firstname, p.Pos_NAME FROM EMPLOYEES e "
-					+ "JOIN positions p ON e.pos_id = p.pos_id "
-					+ "WHERE Firstname = '" + RestaurantMain.username.getText() + "'");
-			*/ 
 			if (result.next()) //Results crawling
 			{
 				String storedpostion = result.getString("Pos_NAME");
@@ -153,7 +145,7 @@ class Role {
 	
 	void boss() {
 		
-		flagtable = 1; //Only for the Boss - access to add more tables!
+		flagtable = 1; //Only for the Boss - access to add more tables or delete!
 		
 		fname.setText("ИМЕ");
 		fname.setFont(new Font("Calibri", Font.BOLD, 30));
@@ -192,30 +184,10 @@ class Role {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				
-				try {
-					Connection conn = DriverManager.getConnection(idbcURL,user,password);
-					
-					str_selectedid = combo.getSelectedItem().toString().split(" ")[0];
-					selectedid = Integer.parseInt(str_selectedid);
-					
-					sql_employees = "{CALL P_EMPLOYEES(?, ?, ?, ?, ?)}"; //The Registration/insert procedure
-						
-					statement = conn.prepareStatement(sql_employees);
-					statement.setString(1, name.getText());
-					statement.setString(2, lastname.getText());
-					statement.setString(3, egn.getText());
-					statement.setString(4, hashedpassword());
-					statement.setInt(5, selectedid);
-						
-					result = statement.executeQuery(); 
-					
-					
-					conn.close();
-					
-				} catch (SQLException er) {
-					// TODO Auto-generated catch block
-					er.printStackTrace();
-				} 
+				str_selectedid = combo.getSelectedItem().toString().split(" ")[0];
+				selectedid = Integer.parseInt(str_selectedid);
+				
+				SQL_Handler.addEmployee(name,lastname,egn,selectedid);
 				
 			}
 			
@@ -236,31 +208,11 @@ class Role {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				
-				try {
-					Connection conn = DriverManager.getConnection(idbcURL,user,password);
+				str_selectedid = combo.getSelectedItem().toString().split(" ")[0];
+				selectedid = Integer.parseInt(str_selectedid);
+				id_emplo = Integer.parseInt(id.getText());
 				
-					str_selectedid = combo.getSelectedItem().toString().split(" ")[0];
-					selectedid = Integer.parseInt(str_selectedid);
-					id_emplo = Integer.parseInt(id.getText());
-					
-					sql_employees = "{CALL UP_EMPLOYEES(?, ?, ?, ?, ?, ?)}"; //The update procedure
-						
-					statement = conn.prepareStatement(sql_employees);
-					statement.setInt(1, id_emplo);
-					statement.setString(2, name.getText());
-					statement.setString(3, lastname.getText());
-					statement.setString(4, egn.getText());
-					statement.setString(5, hashedpassword());
-					statement.setInt(6, selectedid);
-						
-					result = statement.executeQuery(); 
-					
-					conn.close();
-					
-				} catch (SQLException er) {
-					// TODO Auto-generated catch block
-					er.printStackTrace();
-				} 
+				SQL_Handler.updateEmployee(id_emplo,name,lastname,egn,selectedid);
 				
 			}
 		});
@@ -274,24 +226,9 @@ class Role {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				
-				try {
-					Connection conn = DriverManager.getConnection(idbcURL,user,password);
+				id_emplo = Integer.parseInt(id.getText());
 				
-					id_emplo = Integer.parseInt(id.getText());
-					
-					sql_employees = "{CALL D_EMPLOYEES(?)}"; //The delete procedure
-						
-					statement = conn.prepareStatement(sql_employees);
-					statement.setInt(1, id_emplo);
-					
-				    result = statement.executeQuery(); 
-				    
-				    conn.close();
-					
-				} catch (SQLException er) {
-					// TODO Auto-generated catch block
-					er.printStackTrace();
-				} 
+				SQL_Handler.deleteEmployee(id_emplo);
 				
 			}
 		});
@@ -330,42 +267,134 @@ class Role {
 		panel_reg.add(delbtn);
 		panel_reg.setLayout(null);
 		
-		archive_text.setBounds(870,760,220,50);
+		archive_text.setBounds(870,760,220,50); //text field
+		
+		tableModel = new DefaultTableModel();
 		
 		archivebtn = new JButton();
 		archivebtn.setText("АРХИВ");
-		archivebtn.setBounds(870,800,220,50);
+		archivebtn.setBounds(870,810,220,50);
 		archivebtn.setFocusPainted(false);
 		archivebtn.addActionListener(new ActionListener() {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				
-				tableModel = new DefaultTableModel();
-				table = new JTable(tableModel);
+				if (tableModel.getRowCount() !=0) {
+					
+					tableModel.setColumnCount(0); //delete columns for the new ones!
+					tableModel.setRowCount(0); //delete rows for the new ones!
+					
+				}
+				
+				else {
+					//Just in case, if the button archive with an empty field is pressed!
+					tableModel.setColumnCount(0); //delete columns for the new ones!
+					
+					table = new JTable(tableModel);
+					scroll_table = new JScrollPane(table);
+					scroll_table.setBounds(660, 500, 610, 200);
+					scroll_table.setVisible(true);
+					
+					Profilepanel.add(scroll_table);
+					
+				}
+				
 				tableModel.addColumn("Сметка");
 				tableModel.addColumn("МАСА");
 				tableModel.addColumn("Сервитьор");
 				tableModel.addColumn("ястие/напитка");
 				tableModel.addColumn("Дата");
 				
-				SQL_Handler.showArchiveOrders(table, tableModel);
+				SQL_Handler.showArchiveOrders(tableModel);
 				
-				scroll_table = new JScrollPane(table);
-				scroll_table.setBounds(300, 300, 600, 100);
-				scroll_table.setVisible(true);
-				
-				Profilepanel.add(scroll_table);
 			}
 		});
 		
-		scroll_table = new JScrollPane(table);
-		scroll_table.setBounds(300, 300, 600, 100);
-		scroll_table.setVisible(false);
+		archivedelbtn = new JButton();
+		archivedelbtn.setText("ИЗТРИЙ АРХИВА");
+		archivedelbtn.setBackground(Color.RED);
+		archivedelbtn.setBounds(870,870,220,30);
+		archivedelbtn.setFocusPainted(false);
+		archivedelbtn.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				
+				int confirm1 = JOptionPane.showConfirmDialog(RestaurantMain.frame, "Наистина ли желаете да изтриете архива ?", "АРХИВ", JOptionPane.YES_NO_OPTION);
+				
+				if (confirm1 == JOptionPane.YES_OPTION) {
+					
+					String confirm2 = JOptionPane.showInputDialog(RestaurantMain.frame, "ПОТВЪРЖДАВАТЕ ли, че желаете да изтриете архива ? \n (Напишете ПОТВЪРЖДАВАМ)", "АРХИВ", JOptionPane.YES_NO_OPTION); 
+					
+					if (confirm2!=null && confirm2.toUpperCase().equals("ПОТВЪРЖДАВАМ")) {
+						
+						SQL_Handler.deleteArchive();
+					
+				}
+					else {
+						JOptionPane.showMessageDialog(RestaurantMain.frame, "Изтриването прекратено!", "АРХИВ", JOptionPane.OK_OPTION);
+						
+					}
+				}
+				
+				else {
+					JOptionPane.showMessageDialog(RestaurantMain.frame, "Изтриването прекратено!", "АРХИВ", JOptionPane.OK_OPTION);
+					
+				}
+				
+			}
+		});
+		
+		archiveemplobtn = new JButton();
+		archiveemplobtn.setText("Сервитьори");
+		archiveemplobtn.setBackground(new Color (240,255,255)); //The color is azure
+		archiveemplobtn.setBounds(870,910,220,30);
+		archiveemplobtn.setFocusPainted(false);
+		archiveemplobtn.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				
+				if (tableModel.getRowCount() !=0) {
+					
+					tableModel.setColumnCount(0); //delete columns for the new ones!
+					tableModel.setRowCount(0); //delete rows for the new ones!
+					
+				}
+				
+				else {
+					//Just in case, if the button archive with an empty field is pressed!
+					tableModel.setColumnCount(0); //delete columns for the new ones!
+					
+					table = new JTable(tableModel);
+				
+					scroll_table = new JScrollPane(table);
+					scroll_table.setBounds(660, 500, 610, 200);
+					scroll_table.setVisible(true);
+					
+					Profilepanel.add(scroll_table);
+					
+				}
+				
+				tableModel.addColumn("ID");
+				tableModel.addColumn("Име");
+				tableModel.addColumn("Фамилия");
+				tableModel.addColumn("ЕГН");
+				tableModel.addColumn("Парола");
+				tableModel.addColumn("Позиция");
+				
+				SQL_Handler.waiterTable(tableModel);
+				
+				}
+			
+		});
 		
 		Profilepanel.add(archive_text);
-	    Profilepanel.add(archivebtn);
-		Profilepanel.add(panel_reg);
+		Profilepanel.add(archiveemplobtn);
+		Profilepanel.add(archivedelbtn);
+		Profilepanel.add(archivebtn);
+	    Profilepanel.add(panel_reg);
 		Profilepanel.add(panel_boss);
 		
 	}
@@ -378,7 +407,6 @@ class Role {
 		JLabel WaiterName = new JLabel();
 		WaiterName.setFont(RestaurantMain.font);
 		WaiterName.setText("Hello, " + RestaurantMain.username.getText());
-		// panel_waiter.setText(COUNT POR14KI);
 		WaiterName.setVerticalAlignment(JLabel.CENTER);
 		WaiterName.setHorizontalAlignment(JLabel.CENTER);
 		panel_waiter.setBackground(new Color (240,255,255)); //The color is azure
@@ -429,7 +457,7 @@ class Role {
 		ImageIcon logo = new ImageIcon("logo.png");
 		JLabel logoframe = new JLabel();
 		logoframe.setIcon(logo);
-		logoframe.setBounds(650, 400, 500, 200);
+		logoframe.setBounds(650, 100, 500, 200);
 		
 		JPanel panel1 = new JPanel();
 		panel1.setBackground(Color.orange);
@@ -460,7 +488,7 @@ class Role {
 	    
 	}
 
-	private static String hashedpassword() {
+	static String hashedpassword() {
 	
 		MessageDigest digest;
 		String resultHashedPass ="";
@@ -544,8 +572,8 @@ class Role {
 						public void mouseClicked(MouseEvent e) {
 							int dotIndex2 = file.getName().lastIndexOf(".");
 							String strid_table = file.getName().substring(0, dotIndex2-1);
-							name_table = Integer.parseInt(strid_table);
-							lastClicktable = name_table;
+							lastClicktable = strid_table;
+							
 							ReserveTable table = new ReserveTable();
 							table.table();
 							
