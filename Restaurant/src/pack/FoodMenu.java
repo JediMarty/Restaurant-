@@ -117,7 +117,16 @@ class FoodMenu {
 			
 			File file = filechooser.getSelectedFile();
 			text = JOptionPane.showInputDialog("Въведете име на ястието");
-			price = JOptionPane.showInputDialog("Въведете цена");
+			
+			try {
+				do {
+					price = JOptionPane.showInputDialog("Въведете цена");
+					
+				} while (!price.matches("\\d+"));
+				
+			} catch (NullPointerException e){
+				
+			}
 			
 			addItemtoDB(text,price);
 			
