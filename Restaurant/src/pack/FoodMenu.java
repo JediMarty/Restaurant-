@@ -14,11 +14,6 @@ import java.awt.event.MouseListener;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import javax.imageio.ImageIO;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -44,14 +39,10 @@ class FoodMenu {
 	private String price;
 	private String fileNameToSearch;
 	static String item;
-	private String sql_MENU_ITEMS;
 	
 	private int dotIndex;
 	
-	private String idbcURL = "jdbc:oracle:thin:@localhost:1521:XE";
-	private String user = "marti";
-	private String password = "marti";
-	JScrollPane scroll;
+	private JScrollPane scroll;
 	
 	FoodMenu() {
 		init();
@@ -135,7 +126,7 @@ class FoodMenu {
 				File savedfile = saveImage(file);
 				
 				if (savedfile != null) {
-					displayImage(savedfile, text);
+					displayImage(savedfile);
 				}
 			}
 		}
@@ -165,135 +156,24 @@ class FoodMenu {
 		
 		if (dir.exists()) {
 			for (File file : dir.listFiles() ) {
-				displayImage(file, file.getName());
+				displayImage(file);
 			}
 		}
 	}
 	
 	private void addItemtoDB(String filename, String money) {
 		
-		try {
-			Connection conn = DriverManager.getConnection(idbcURL,user,password);
-			
-			PreparedStatement statement;
-		    ResultSet result;
-		    
-		    sql_MENU_ITEMS = "{CALL P_MENU_ITEMS(?, ?)}"; //The insert procedure
-			
-			statement = conn.prepareStatement(sql_MENU_ITEMS);
-			statement.setString(1, filename);
-			statement.setString(2, money);
-			result = statement.executeQuery(); 
-			
-			conn.close();
-			
-		} catch (SQLException er) {
-			// TODO Auto-generated catch block
-			er.printStackTrace();
-		} 
-		
-	
-		
-		/*
-		price = Double.parseDouble(money);
-		
-		if (!pricesfile.exists()) {
-			
-			try {
-				pricesfile.createNewFile();
-			
-			}catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
-		
-		try {
-			FileWriter write = new FileWriter(pricesfile,true); //true = open the file for adding not overwriting!
-			write.write(price +" - " + filename + "\n");
-			write.close();
-		
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		*/
+		SQL_Handler.addItem(filename, money);
 		
 	}
 	
 	private void delItemfromDB(File file) {
 	
-		try {
-			Connection conn = DriverManager.getConnection(idbcURL,user,password);
+		int dotIndex = file.getName().lastIndexOf(".");
+		String fileNameToSearch = file.getName().substring(0, dotIndex-1); //Get the file name without .png!
 		
-			PreparedStatement statement;
-		    ResultSet result;
-	
-		    int dotIndex = file.getName().lastIndexOf(".");
-			String fileNameToSearch = file.getName().substring(0, dotIndex-1); //Get the file name without .png!
-		    
-		    String sqlQ = "SELECT * FROM MENU_ITEMS WHERE item = ?";
-		    
-		    sql_MENU_ITEMS = "{CALL D_MENU_ITEMS(?)}"; //The delete procedure
-			
-			statement = conn.prepareStatement(sqlQ);
-			statement.setString(1, fileNameToSearch);
-			result = statement.executeQuery(); 
-	
-			if (result.next()) //Results crawling
-			{
-				int storedpostion = result.getInt("mID"); //ID where is the item who needs to be deleted!
-				
-				statement = conn.prepareStatement(sql_MENU_ITEMS);
-				statement.setInt(1, storedpostion);
-				result = statement.executeQuery(); 
-				
-			}
-			
-			conn.close();
-			
-		} catch (SQLException er) {
-			// TODO Auto-generated catch block
-			er.printStackTrace();
-		} 
+		SQL_Handler.deleteItem(file, fileNameToSearch);
 		
-		
-	/*
-			String readname;
-			File tempfile = new File("temp.txt");
-			File pricesfile = new File("prices.txt");
-			try {
-			Scanner reader = new Scanner(pricesfile);
-			FileWriter write = new FileWriter(tempfile,true);
-			
-			int dotIndex = file.getName().lastIndexOf(".");
-			String fileNameToSearch = file.getName().substring(0, dotIndex-1);
-			
-			while(reader.hasNextLine()) {
-				
-				readname = reader.nextLine();
-				
-				if (readname.contains(fileNameToSearch)) {
-					
-					continue; //Skip the line that needs to be deleted!
-					}
-				
-				write.write(readname + "\n");
-						
-			}
-			
-			write.close();
-			reader.close();
-		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-			pricesfile.delete();
-			tempfile.renameTo(pricesfile);
-			*/
 	}
 	
 	private void delete(File file, JPanel panel) {
@@ -304,12 +184,7 @@ class FoodMenu {
 			
 			delItemfromDB(file);
 			file.delete(); 
-			//imagePanel.remove(panel); //remove from the interface
-			//imagePanel.revalidate();
-			//imagePanel.repaint();
-			//scroll.revalidate();
-			//scroll.repaint();
-		    foodframe.dispose();
+			foodframe.dispose();
 		    new FoodMenu();
 		}
 		
@@ -330,7 +205,7 @@ class FoodMenu {
 			fileNameToSearch = file.getName().substring(0, dotIndex-1);
 			// replaceAll("\\s+", "") - remove all spaces!
 			if (fileNameToSearch.replaceAll("\\s+", "").toLowerCase().contains(search.getText().toLowerCase())) {
-				displayImage(file,file.getName());
+				displayImage(file);
 				
 			}
 		}
@@ -344,16 +219,32 @@ class FoodMenu {
 
 			@Override
 			public void mouseClicked(MouseEvent e) {
-				int confirm = JOptionPane.showConfirmDialog(foodframe, "Добавено", "Добавяне", JOptionPane.YES_NO_OPTION);
 				
-				if (confirm == JOptionPane.YES_OPTION) {
-					item = fileNameToSearch;
+				String status = "Свободна";
 				
-					ReserveTable.order();
+				try {
+				
+				if (status.equals(SQL_Handler.checkTableAvailable1()) || Login.resultHashedPass.equals(SQL_Handler.checkTableAvailable2())) {
+					
+					int confirm = JOptionPane.showConfirmDialog(foodframe, "Добавяне: " + fileNameToSearch, "Избор", JOptionPane.YES_NO_OPTION);
+					
+					if (confirm == JOptionPane.YES_OPTION) {
+						item = fileNameToSearch;
+						ReserveTable.order();
+				}
+					else {
+						JOptionPane.showMessageDialog(foodframe, "Добавянето е прекратено!", "Грешка", JOptionPane.OK_OPTION);
+						
+					}
+					
 				}
 				
 				else {
-					JOptionPane.showMessageDialog(foodframe, "Добавянето е прекратено!", "Грешка", JOptionPane.OK_OPTION);
+					JOptionPane.showMessageDialog(foodframe, "Масата, която сте избрали е заета или не сте избрали!", "Грешка", JOptionPane.OK_OPTION);
+				}
+				
+				} catch (NullPointerException e1){
+					JOptionPane.showMessageDialog(foodframe, "Масата, която сте избрали е заета или не сте избрали!", "Грешка", JOptionPane.OK_OPTION);
 				}
 			}
 
@@ -389,7 +280,7 @@ class FoodMenu {
 		}
 	}
 	
-	private void displayImage(File file, String text) {
+	private void displayImage(File file) {
 		
 		try {
 			
@@ -446,6 +337,6 @@ class FoodMenu {
 			e.printStackTrace();
 		}
 		
-		orderFood(fileNameToSearch); //Method for ordering for the food menu, by clicking the image of the meal!
+		orderFood(fileNameToSearch); //Method for ordering from the food menu, by clicking the image of the meal!
 	}
 }
