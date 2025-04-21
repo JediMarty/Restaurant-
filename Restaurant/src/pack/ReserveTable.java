@@ -235,12 +235,12 @@ class ReserveTable {
 		tableframe.setSize(800,800);
 		tableframe.setResizable(false);
 		tableframe.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);    
+		tableframe.setLocationRelativeTo(null); //To center the frame!
 		tableframe.setLayout(null);
 		scroll = new JScrollPane(table);
 		scroll.setBounds(0, 0, 800, 120);
 		tableframe.add(scroll);
 		tableframe.add(panel);
-		tableframe.revalidate(); tableframe.repaint();
 		tableframe.setVisible(true);
 		
 		}
