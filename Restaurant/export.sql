@@ -1,36 +1,46 @@
 --------------------------------------------------------
---  File created - Вторник-Февруари-25-2025   
+--  File created - Понеделник-Април-21-2025   
 --------------------------------------------------------
 --------------------------------------------------------
 --  DDL for Sequence M_ID
 --------------------------------------------------------
 
-   CREATE SEQUENCE  "MARTI"."M_ID"  MINVALUE 1 MAXVALUE 9999999999999999999999999999 INCREMENT BY 1 START WITH 61 NOCACHE  ORDER  NOCYCLE ;
+   CREATE SEQUENCE  "MARTI"."M_ID"  MINVALUE 1 MAXVALUE 9999999999999999999999999999 INCREMENT BY 1 START WITH 99 NOCACHE  ORDER  NOCYCLE ;
 --------------------------------------------------------
 --  DDL for Sequence POS_EMPLO
 --------------------------------------------------------
 
-   CREATE SEQUENCE  "MARTI"."POS_EMPLO"  MINVALUE 1 MAXVALUE 9999999999999999999999999999 INCREMENT BY 1 START WITH 22 NOCACHE  ORDER  NOCYCLE ;
+   CREATE SEQUENCE  "MARTI"."POS_EMPLO"  MINVALUE 1 MAXVALUE 9999999999999999999999999999 INCREMENT BY 1 START WITH 24 NOCACHE  ORDER  NOCYCLE ;
 --------------------------------------------------------
 --  DDL for Sequence POS_ORDERS
 --------------------------------------------------------
 
-   CREATE SEQUENCE  "MARTI"."POS_ORDERS"  MINVALUE 1 MAXVALUE 9999999999999999999999999999 INCREMENT BY 1 START WITH 63 NOCACHE  ORDER  NOCYCLE ;
+   CREATE SEQUENCE  "MARTI"."POS_ORDERS"  MINVALUE 1 MAXVALUE 9999999999999999999999999999 INCREMENT BY 1 START WITH 343 NOCACHE  ORDER  NOCYCLE ;
+--------------------------------------------------------
+--  DDL for Sequence POS_ORDERS_ARCHIVE
+--------------------------------------------------------
+
+   CREATE SEQUENCE  "MARTI"."POS_ORDERS_ARCHIVE"  MINVALUE 1 MAXVALUE 9999999999999999999999999999 INCREMENT BY 1 START WITH 181 NOCACHE  ORDER  NOCYCLE ;
 --------------------------------------------------------
 --  DDL for Sequence POS_POSITION
 --------------------------------------------------------
 
    CREATE SEQUENCE  "MARTI"."POS_POSITION"  MINVALUE 1 MAXVALUE 9999999999999999999999999999 INCREMENT BY 1 START WITH 12 NOCACHE  ORDER  NOCYCLE ;
 --------------------------------------------------------
+--  DDL for Sequence POS_RESERVED_TABLE
+--------------------------------------------------------
+
+   CREATE SEQUENCE  "MARTI"."POS_RESERVED_TABLE"  MINVALUE 1 MAXVALUE 9999999999999999999999999999 INCREMENT BY 1 START WITH 33 NOCACHE  ORDER  NOCYCLE ;
+--------------------------------------------------------
 --  DDL for Sequence POS_RTABLES
 --------------------------------------------------------
 
-   CREATE SEQUENCE  "MARTI"."POS_RTABLES"  MINVALUE 1 MAXVALUE 9999999999999999999999999999 INCREMENT BY 1 START WITH 443 NOCACHE  ORDER  NOCYCLE ;
+   CREATE SEQUENCE  "MARTI"."POS_RTABLES"  MINVALUE 1 MAXVALUE 9999999999999999999999999999 INCREMENT BY 1 START WITH 470 NOCACHE  ORDER  NOCYCLE ;
 --------------------------------------------------------
 --  DDL for Sequence POS_TABLE_BILL
 --------------------------------------------------------
 
-   CREATE SEQUENCE  "MARTI"."POS_TABLE_BILL"  MINVALUE 1 MAXVALUE 9999999999999999999999999999 INCREMENT BY 1 START WITH 35 NOCACHE  ORDER  NOCYCLE ;
+   CREATE SEQUENCE  "MARTI"."POS_TABLE_BILL"  MINVALUE 1 MAXVALUE 9999999999999999999999999999 INCREMENT BY 1 START WITH 174 NOCACHE  ORDER  NOCYCLE ;
 --------------------------------------------------------
 --  DDL for Table EMPLOYEES
 --------------------------------------------------------
@@ -77,12 +87,42 @@
   PCTINCREASE 0 FREELISTS 1 FREELIST GROUPS 1 BUFFER_POOL DEFAULT FLASH_CACHE DEFAULT CELL_FLASH_CACHE DEFAULT)
   TABLESPACE "SYSTEM" ;
 --------------------------------------------------------
+--  DDL for Table ORDERS_ARCHIVE
+--------------------------------------------------------
+
+  CREATE TABLE "MARTI"."ORDERS_ARCHIVE" 
+   (	"ARCHIVEID" NUMBER(*,0), 
+	"TID" NUMBER(*,0), 
+	"ID" NUMBER(*,0), 
+	"MID" NUMBER(*,0), 
+	"TIMEORDERING" TIMESTAMP (6), 
+	"BILLID" NUMBER(*,0), 
+	"ORDERSID" NUMBER
+   ) SEGMENT CREATION IMMEDIATE 
+  PCTFREE 10 PCTUSED 40 INITRANS 1 MAXTRANS 255 NOCOMPRESS LOGGING
+  STORAGE(INITIAL 65536 NEXT 1048576 MINEXTENTS 1 MAXEXTENTS 2147483645
+  PCTINCREASE 0 FREELISTS 1 FREELIST GROUPS 1 BUFFER_POOL DEFAULT FLASH_CACHE DEFAULT CELL_FLASH_CACHE DEFAULT)
+  TABLESPACE "SYSTEM" ;
+--------------------------------------------------------
 --  DDL for Table POSITIONS
 --------------------------------------------------------
 
   CREATE TABLE "MARTI"."POSITIONS" 
    (	"POS_ID" NUMBER(*,0), 
 	"POS_NAME" VARCHAR2(10 BYTE)
+   ) SEGMENT CREATION IMMEDIATE 
+  PCTFREE 10 PCTUSED 40 INITRANS 1 MAXTRANS 255 NOCOMPRESS LOGGING
+  STORAGE(INITIAL 65536 NEXT 1048576 MINEXTENTS 1 MAXEXTENTS 2147483645
+  PCTINCREASE 0 FREELISTS 1 FREELIST GROUPS 1 BUFFER_POOL DEFAULT FLASH_CACHE DEFAULT CELL_FLASH_CACHE DEFAULT)
+  TABLESPACE "SYSTEM" ;
+--------------------------------------------------------
+--  DDL for Table RESERVED_TABLE
+--------------------------------------------------------
+
+  CREATE TABLE "MARTI"."RESERVED_TABLE" 
+   (	"RTID" NUMBER(*,0), 
+	"TID" NUMBER(*,0), 
+	"ID" NUMBER(*,0)
    ) SEGMENT CREATION IMMEDIATE 
   PCTFREE 10 PCTUSED 40 INITRANS 1 MAXTRANS 255 NOCOMPRESS LOGGING
   STORAGE(INITIAL 65536 NEXT 1048576 MINEXTENTS 1 MAXEXTENTS 2147483645
@@ -107,8 +147,7 @@
 
   CREATE TABLE "MARTI"."TABLE_BILL" 
    (	"BILLID" NUMBER(*,0), 
-	"BILL" NUMBER(*,0), 
-	"BILL_STATUS" VARCHAR2(20 BYTE)
+	"BILL" NUMBER(*,0)
    ) SEGMENT CREATION IMMEDIATE 
   PCTFREE 10 PCTUSED 40 INITRANS 1 MAXTRANS 255 NOCOMPRESS LOGGING
   STORAGE(INITIAL 65536 NEXT 1048576 MINEXTENTS 1 MAXEXTENTS 2147483645
@@ -124,36 +163,58 @@ SET DEFINE OFF;
 Insert into MARTI.MENU_ITEMS (MID,ITEM,PRICE) values (59,'Равиоли с 4 сирена',7.8);
 Insert into MARTI.MENU_ITEMS (MID,ITEM,PRICE) values (2,'Овчарски шиш',8.99);
 Insert into MARTI.MENU_ITEMS (MID,ITEM,PRICE) values (3,'Картофи соте',6.99);
-Insert into MARTI.MENU_ITEMS (MID,ITEM,PRICE) values (57,null,null);
+Insert into MARTI.MENU_ITEMS (MID,ITEM,PRICE) values (88,'Суши - авокадо маки',7.99);
 Insert into MARTI.MENU_ITEMS (MID,ITEM,PRICE) values (58,'Равиоли с домат',7.6);
 Insert into MARTI.MENU_ITEMS (MID,ITEM,PRICE) values (60,'Равиоли с гъби',7.6);
+Insert into MARTI.MENU_ITEMS (MID,ITEM,PRICE) values (89,'Суши с краставици',7.99);
+Insert into MARTI.MENU_ITEMS (MID,ITEM,PRICE) values (94,null,null);
+Insert into MARTI.MENU_ITEMS (MID,ITEM,PRICE) values (92,null,null);
+Insert into MARTI.MENU_ITEMS (MID,ITEM,PRICE) values (97,'Портокалов сок',2.99);
+Insert into MARTI.MENU_ITEMS (MID,ITEM,PRICE) values (98,null,null);
 REM INSERTING into MARTI.ORDERS
 SET DEFINE OFF;
+REM INSERTING into MARTI.ORDERS_ARCHIVE
+SET DEFINE OFF;
+Insert into MARTI.ORDERS_ARCHIVE (ARCHIVEID,TID,ID,MID,TIMEORDERING,BILLID,ORDERSID) values (160,443,6,89,to_timestamp('2025-04-01 12:00:50.000000000','RRRR-MM-DD HH24:MI:SSXFF'),162,282);
+Insert into MARTI.ORDERS_ARCHIVE (ARCHIVEID,TID,ID,MID,TIMEORDERING,BILLID,ORDERSID) values (158,443,6,59,to_timestamp('2025-04-01 12:00:50.000000000','RRRR-MM-DD HH24:MI:SSXFF'),162,277);
+Insert into MARTI.ORDERS_ARCHIVE (ARCHIVEID,TID,ID,MID,TIMEORDERING,BILLID,ORDERSID) values (159,443,6,89,to_timestamp('2025-04-01 12:00:50.000000000','RRRR-MM-DD HH24:MI:SSXFF'),162,279);
+Insert into MARTI.ORDERS_ARCHIVE (ARCHIVEID,TID,ID,MID,TIMEORDERING,BILLID,ORDERSID) values (161,443,6,3,to_timestamp('2025-04-01 12:00:50.000000000','RRRR-MM-DD HH24:MI:SSXFF'),162,286);
+Insert into MARTI.ORDERS_ARCHIVE (ARCHIVEID,TID,ID,MID,TIMEORDERING,BILLID,ORDERSID) values (162,443,6,58,to_timestamp('2025-04-01 15:04:28.000000000','RRRR-MM-DD HH24:MI:SSXFF'),163,291);
+Insert into MARTI.ORDERS_ARCHIVE (ARCHIVEID,TID,ID,MID,TIMEORDERING,BILLID,ORDERSID) values (163,443,6,58,to_timestamp('2025-04-01 15:17:08.000000000','RRRR-MM-DD HH24:MI:SSXFF'),164,293);
+Insert into MARTI.ORDERS_ARCHIVE (ARCHIVEID,TID,ID,MID,TIMEORDERING,BILLID,ORDERSID) values (164,443,6,58,to_timestamp('2025-04-01 15:17:08.000000000','RRRR-MM-DD HH24:MI:SSXFF'),164,295);
+Insert into MARTI.ORDERS_ARCHIVE (ARCHIVEID,TID,ID,MID,TIMEORDERING,BILLID,ORDERSID) values (178,460,6,97,to_timestamp('2025-04-10 13:00:27.000000000','RRRR-MM-DD HH24:MI:SSXFF'),173,334);
+Insert into MARTI.ORDERS_ARCHIVE (ARCHIVEID,TID,ID,MID,TIMEORDERING,BILLID,ORDERSID) values (180,460,6,88,to_timestamp('2025-04-10 13:00:27.000000000','RRRR-MM-DD HH24:MI:SSXFF'),173,339);
+Insert into MARTI.ORDERS_ARCHIVE (ARCHIVEID,TID,ID,MID,TIMEORDERING,BILLID,ORDERSID) values (167,444,6,60,to_timestamp('2025-04-10 12:39:14.000000000','RRRR-MM-DD HH24:MI:SSXFF'),167,302);
+Insert into MARTI.ORDERS_ARCHIVE (ARCHIVEID,TID,ID,MID,TIMEORDERING,BILLID,ORDERSID) values (179,460,6,97,to_timestamp('2025-04-10 13:00:27.000000000','RRRR-MM-DD HH24:MI:SSXFF'),173,336);
 REM INSERTING into MARTI.POSITIONS
 SET DEFINE OFF;
 Insert into MARTI.POSITIONS (POS_ID,POS_NAME) values (1,'Boss');
 Insert into MARTI.POSITIONS (POS_ID,POS_NAME) values (2,'Waiter');
+REM INSERTING into MARTI.RESERVED_TABLE
+SET DEFINE OFF;
 REM INSERTING into MARTI.RTABLES
 SET DEFINE OFF;
+Insert into MARTI.RTABLES (TID,TNAME,STATUS) values (443,'1','Свободна');
+Insert into MARTI.RTABLES (TID,TNAME,STATUS) values (445,'3','Свободна');
+Insert into MARTI.RTABLES (TID,TNAME,STATUS) values (444,'2','Свободна');
+Insert into MARTI.RTABLES (TID,TNAME,STATUS) values (449,'4','Свободна');
+Insert into MARTI.RTABLES (TID,TNAME,STATUS) values (460,'5','Свободна');
+Insert into MARTI.RTABLES (TID,TNAME,STATUS) values (461,'6','Свободна');
 REM INSERTING into MARTI.TABLE_BILL
 SET DEFINE OFF;
-Insert into MARTI.TABLE_BILL (BILLID,BILL,BILL_STATUS) values (19,2787,'Отворена');
-Insert into MARTI.TABLE_BILL (BILLID,BILL,BILL_STATUS) values (20,9048,'Отворена');
-Insert into MARTI.TABLE_BILL (BILLID,BILL,BILL_STATUS) values (18,7602,'Отворена');
-Insert into MARTI.TABLE_BILL (BILLID,BILL,BILL_STATUS) values (21,6596,'Отворена');
-Insert into MARTI.TABLE_BILL (BILLID,BILL,BILL_STATUS) values (22,6981,'Отворена');
-Insert into MARTI.TABLE_BILL (BILLID,BILL,BILL_STATUS) values (23,9733,'Отворена');
-Insert into MARTI.TABLE_BILL (BILLID,BILL,BILL_STATUS) values (24,5349,'Отворена');
-Insert into MARTI.TABLE_BILL (BILLID,BILL,BILL_STATUS) values (25,8502,'Отворена');
-Insert into MARTI.TABLE_BILL (BILLID,BILL,BILL_STATUS) values (26,6458,'Отворена');
-Insert into MARTI.TABLE_BILL (BILLID,BILL,BILL_STATUS) values (27,961,'Отворена');
-Insert into MARTI.TABLE_BILL (BILLID,BILL,BILL_STATUS) values (28,3097,'Отворена');
-Insert into MARTI.TABLE_BILL (BILLID,BILL,BILL_STATUS) values (29,3508,'Отворена');
-Insert into MARTI.TABLE_BILL (BILLID,BILL,BILL_STATUS) values (30,2397,'Отворена');
-Insert into MARTI.TABLE_BILL (BILLID,BILL,BILL_STATUS) values (31,6721,'Отворена');
-Insert into MARTI.TABLE_BILL (BILLID,BILL,BILL_STATUS) values (32,6776,'Отворена');
-Insert into MARTI.TABLE_BILL (BILLID,BILL,BILL_STATUS) values (33,7942,'Отворена');
-Insert into MARTI.TABLE_BILL (BILLID,BILL,BILL_STATUS) values (34,4395,'Отворена');
+Insert into MARTI.TABLE_BILL (BILLID,BILL) values (163,3140);
+Insert into MARTI.TABLE_BILL (BILLID,BILL) values (161,1474);
+Insert into MARTI.TABLE_BILL (BILLID,BILL) values (162,6178);
+Insert into MARTI.TABLE_BILL (BILLID,BILL) values (164,9411);
+Insert into MARTI.TABLE_BILL (BILLID,BILL) values (165,5243);
+Insert into MARTI.TABLE_BILL (BILLID,BILL) values (166,2090);
+Insert into MARTI.TABLE_BILL (BILLID,BILL) values (167,9790);
+Insert into MARTI.TABLE_BILL (BILLID,BILL) values (168,4050);
+Insert into MARTI.TABLE_BILL (BILLID,BILL) values (169,9540);
+Insert into MARTI.TABLE_BILL (BILLID,BILL) values (170,3881);
+Insert into MARTI.TABLE_BILL (BILLID,BILL) values (171,9373);
+Insert into MARTI.TABLE_BILL (BILLID,BILL) values (172,9225);
+Insert into MARTI.TABLE_BILL (BILLID,BILL) values (173,5603);
 --------------------------------------------------------
 --  DDL for Trigger MENU_ITEMS_ID_AUTO
 --------------------------------------------------------
@@ -166,6 +227,18 @@ FOR EACH ROW
 END; 
 /
 ALTER TRIGGER "MARTI"."MENU_ITEMS_ID_AUTO" ENABLE;
+--------------------------------------------------------
+--  DDL for Trigger ORDERS_ARCHIVE_ID_AUTO
+--------------------------------------------------------
+
+  CREATE OR REPLACE TRIGGER "MARTI"."ORDERS_ARCHIVE_ID_AUTO" 
+BEFORE INSERT ON Orders_Archive
+FOR EACH ROW  
+ WHEN (NEW.archiveID IS NULL) BEGIN 
+:NEW.archiveID := POS_ORDERS_ARCHIVE.NEXTVAL; 
+END; 
+/
+ALTER TRIGGER "MARTI"."ORDERS_ARCHIVE_ID_AUTO" ENABLE;
 --------------------------------------------------------
 --  DDL for Trigger ORDERS_ID_AUTO
 --------------------------------------------------------
@@ -203,6 +276,18 @@ END;
 /
 ALTER TRIGGER "MARTI"."POSITIONS_ID_AUTO" ENABLE;
 --------------------------------------------------------
+--  DDL for Trigger RESERVED_TABLE_ID_AUTO
+--------------------------------------------------------
+
+  CREATE OR REPLACE TRIGGER "MARTI"."RESERVED_TABLE_ID_AUTO" 
+BEFORE INSERT ON RESERVED_TABLE 
+FOR EACH ROW  
+ WHEN (NEW.RTID IS NULL) BEGIN 
+:NEW.RTID := POS_RESERVED_TABLE.NEXTVAL; 
+END;
+/
+ALTER TRIGGER "MARTI"."RESERVED_TABLE_ID_AUTO" ENABLE;
+--------------------------------------------------------
 --  DDL for Trigger RTABLES_ID_AUTO
 --------------------------------------------------------
 
@@ -226,6 +311,18 @@ FOR EACH ROW
 END; 
 /
 ALTER TRIGGER "MARTI"."TABLEBILL_ID_AUTO" ENABLE;
+--------------------------------------------------------
+--  DDL for Procedure D_ALLORDERS_ARCHIVE
+--------------------------------------------------------
+set define off;
+
+  CREATE OR REPLACE PROCEDURE "MARTI"."D_ALLORDERS_ARCHIVE" 
+AS
+ BEGIN 
+ DELETE FROM ORDERS_ARCHIVE;
+ END;
+
+/
 --------------------------------------------------------
 --  DDL for Procedure D_EMPLOYEES
 --------------------------------------------------------
@@ -258,10 +355,36 @@ set define off;
 set define off;
 
   CREATE OR REPLACE PROCEDURE "MARTI"."D_ORDERS" 
-	        (oID ORDERS.ORDERSID%TYPE)
+(oID ORDERS.ORDERSID%TYPE)
+AS
+ BEGIN 
+ DELETE FROM ORDERS WHERE  ORDERSID = oID;
+END;
+
+/
+--------------------------------------------------------
+--  DDL for Procedure D_ORDERS_ARCHIVE
+--------------------------------------------------------
+set define off;
+
+  CREATE OR REPLACE PROCEDURE "MARTI"."D_ORDERS_ARCHIVE" 
+(oID orders_archive.ordersid%TYPE)
+  AS
+    BEGIN 
+    DELETE FROM ORDERS_ARCHIVE WHERE ordersid = oID;
+    END;
+
+/
+--------------------------------------------------------
+--  DDL for Procedure D_RESERVED_TABLE
+--------------------------------------------------------
+set define off;
+
+  CREATE OR REPLACE PROCEDURE "MARTI"."D_RESERVED_TABLE" 
+	        (Table_ID RESERVED_TABLE.TID%TYPE)
             AS
 			 BEGIN 
-			 DELETE FROM ORDERS WHERE  ORDERSID = oID;
+			 DELETE FROM RESERVED_TABLE WHERE TID = Table_ID;
 			END;
 
 /
@@ -274,8 +397,20 @@ set define off;
 	        (t_ID RTABLES.TID%TYPE)
             AS
 			 BEGIN 
-			 DELETE FROM RTABLES WHERE  TID = t_ID;
+			 DELETE FROM RTABLES WHERE TID = t_ID;
 			END;
+
+/
+--------------------------------------------------------
+--  DDL for Procedure D_TABLE_BILL
+--------------------------------------------------------
+set define off;
+
+  CREATE OR REPLACE PROCEDURE "MARTI"."D_TABLE_BILL" 
+AS
+ BEGIN  
+ DELETE FROM TABLE_BILL;
+END;
 
 /
 --------------------------------------------------------
@@ -330,6 +465,25 @@ END;
 
 /
 --------------------------------------------------------
+--  DDL for Procedure P_ORDERS_ARCHIVE
+--------------------------------------------------------
+set define off;
+
+  CREATE OR REPLACE PROCEDURE "MARTI"."P_ORDERS_ARCHIVE" 
+(oID orders_archive.ordersid%TYPE,
+rtID Orders_Archive.tID%TYPE,
+eID Orders_Archive.ID%TYPE,
+menuID Orders_Archive.mID%TYPE,
+otime Orders_Archive.timeordering%TYPE,
+tbbillid Orders_Archive.billid%TYPE)
+AS
+ BEGIN
+ INSERT INTO Orders_Archive(ordersid,tID,ID,mID,timeordering,billid)
+ Values (oID,rtID,eID,menuID,otime,tbbillid);
+END;
+
+/
+--------------------------------------------------------
 --  DDL for Procedure P_POSITIONS
 --------------------------------------------------------
 set define off;
@@ -340,6 +494,21 @@ AS
  BEGIN
  INSERT INTO Positions(pos_name)
  Values (PNAME);
+END;
+
+/
+--------------------------------------------------------
+--  DDL for Procedure P_RESERVED_TABLE
+--------------------------------------------------------
+set define off;
+
+  CREATE OR REPLACE PROCEDURE "MARTI"."P_RESERVED_TABLE" 
+(TableID RESERVED_TABLE.TID%TYPE,
+EID reserved_table.ID%TYPE)
+AS
+ BEGIN
+ INSERT INTO RESERVED_TABLE(TID,ID)
+ Values (TableID,EID);
 END;
 
 /
@@ -359,17 +528,44 @@ END;
 
 /
 --------------------------------------------------------
+--  DDL for Procedure PSTATUSA
+--------------------------------------------------------
+set define off;
+
+  CREATE OR REPLACE PROCEDURE "MARTI"."PSTATUSA" 
+    (t_ID RTABLES.TID%TYPE)
+    AS
+     BEGIN
+     UPDATE RTABLES SET STATUS = 'Свободна'
+     WHERE TID = t_ID;
+     END;
+
+/
+--------------------------------------------------------
+--  DDL for Procedure PSTATUSB
+--------------------------------------------------------
+set define off;
+
+  CREATE OR REPLACE PROCEDURE "MARTI"."PSTATUSB" 
+    (t_ID RTABLES.TID%TYPE)
+    AS
+     BEGIN
+     UPDATE RTABLES SET STATUS = 'Затворена'
+     WHERE TID = t_ID;
+     END;
+
+/
+--------------------------------------------------------
 --  DDL for Procedure P_TABLE_BILL
 --------------------------------------------------------
 set define off;
 
   CREATE OR REPLACE PROCEDURE "MARTI"."P_TABLE_BILL" 
-(tbill TABLE_BILL.BILL%TYPE,
-tbstatus TABLE_BILL.BILL_STATUS%TYPE)
+(tbill TABLE_BILL.BILL%TYPE)
 AS
  BEGIN
- INSERT INTO TABLE_BILL(BILL,BILL_STATUS)
- Values (tbill,tbstatus);
+ INSERT INTO TABLE_BILL(BILL)
+ Values (tbill);
 END;
 
 /
@@ -403,21 +599,61 @@ set define off;
 
   CREATE OR REPLACE PROCEDURE "MARTI"."UP_ORDERS" 
 	        (oID ORDERS.ORDERSID%TYPE,
-            otID orders.tid%TYPE,
             omID orders.mid%TYPE)
             AS
 			 BEGIN 
-			 UPDATE ORDERS SET tid = otID,
-             mid = omID
+			 UPDATE ORDERS SET mid = omID
              WHERE  ORDERSID = oID;
 			END;
 
 /
 --------------------------------------------------------
+--  DDL for Procedure UP_ORDERS_ARCHIVE
+--------------------------------------------------------
+set define off;
+
+  CREATE OR REPLACE PROCEDURE "MARTI"."UP_ORDERS_ARCHIVE" 
+(oID orders_archive.ordersid%TYPE,
+omID ORDERS_ARCHIVE.mid%TYPE)
+  AS
+    BEGIN
+    UPDATE ORDERS_ARCHIVE SET  mid = omID
+    WHERE  ordersid = oID;
+    END;
+
+/
+--------------------------------------------------------
+--  Constraints for Table EMPLOYEES
+--------------------------------------------------------
+
+  ALTER TABLE "MARTI"."EMPLOYEES" ADD PRIMARY KEY ("ID")
+  USING INDEX PCTFREE 10 INITRANS 2 MAXTRANS 255 COMPUTE STATISTICS 
+  STORAGE(INITIAL 65536 NEXT 1048576 MINEXTENTS 1 MAXEXTENTS 2147483645
+  PCTINCREASE 0 FREELISTS 1 FREELIST GROUPS 1 BUFFER_POOL DEFAULT FLASH_CACHE DEFAULT CELL_FLASH_CACHE DEFAULT)
+  TABLESPACE "SYSTEM"  ENABLE;
+--------------------------------------------------------
 --  Constraints for Table RTABLES
 --------------------------------------------------------
 
   ALTER TABLE "MARTI"."RTABLES" ADD PRIMARY KEY ("TID")
+  USING INDEX PCTFREE 10 INITRANS 2 MAXTRANS 255 COMPUTE STATISTICS 
+  STORAGE(INITIAL 65536 NEXT 1048576 MINEXTENTS 1 MAXEXTENTS 2147483645
+  PCTINCREASE 0 FREELISTS 1 FREELIST GROUPS 1 BUFFER_POOL DEFAULT FLASH_CACHE DEFAULT CELL_FLASH_CACHE DEFAULT)
+  TABLESPACE "SYSTEM"  ENABLE;
+--------------------------------------------------------
+--  Constraints for Table RESERVED_TABLE
+--------------------------------------------------------
+
+  ALTER TABLE "MARTI"."RESERVED_TABLE" ADD PRIMARY KEY ("RTID")
+  USING INDEX PCTFREE 10 INITRANS 2 MAXTRANS 255 COMPUTE STATISTICS 
+  STORAGE(INITIAL 65536 NEXT 1048576 MINEXTENTS 1 MAXEXTENTS 2147483645
+  PCTINCREASE 0 FREELISTS 1 FREELIST GROUPS 1 BUFFER_POOL DEFAULT FLASH_CACHE DEFAULT CELL_FLASH_CACHE DEFAULT)
+  TABLESPACE "SYSTEM"  ENABLE;
+--------------------------------------------------------
+--  Constraints for Table ORDERS_ARCHIVE
+--------------------------------------------------------
+
+  ALTER TABLE "MARTI"."ORDERS_ARCHIVE" ADD PRIMARY KEY ("ARCHIVEID")
   USING INDEX PCTFREE 10 INITRANS 2 MAXTRANS 255 COMPUTE STATISTICS 
   STORAGE(INITIAL 65536 NEXT 1048576 MINEXTENTS 1 MAXEXTENTS 2147483645
   PCTINCREASE 0 FREELISTS 1 FREELIST GROUPS 1 BUFFER_POOL DEFAULT FLASH_CACHE DEFAULT CELL_FLASH_CACHE DEFAULT)
@@ -459,15 +695,6 @@ set define off;
   PCTINCREASE 0 FREELISTS 1 FREELIST GROUPS 1 BUFFER_POOL DEFAULT FLASH_CACHE DEFAULT CELL_FLASH_CACHE DEFAULT)
   TABLESPACE "SYSTEM"  ENABLE;
 --------------------------------------------------------
---  Constraints for Table EMPLOYEES
---------------------------------------------------------
-
-  ALTER TABLE "MARTI"."EMPLOYEES" ADD PRIMARY KEY ("ID")
-  USING INDEX PCTFREE 10 INITRANS 2 MAXTRANS 255 COMPUTE STATISTICS 
-  STORAGE(INITIAL 65536 NEXT 1048576 MINEXTENTS 1 MAXEXTENTS 2147483645
-  PCTINCREASE 0 FREELISTS 1 FREELIST GROUPS 1 BUFFER_POOL DEFAULT FLASH_CACHE DEFAULT CELL_FLASH_CACHE DEFAULT)
-  TABLESPACE "SYSTEM"  ENABLE;
---------------------------------------------------------
 --  Ref Constraints for Table EMPLOYEES
 --------------------------------------------------------
 
@@ -485,3 +712,23 @@ set define off;
 	  REFERENCES "MARTI"."MENU_ITEMS" ("MID") ENABLE;
   ALTER TABLE "MARTI"."ORDERS" ADD FOREIGN KEY ("BILLID")
 	  REFERENCES "MARTI"."TABLE_BILL" ("BILLID") ENABLE;
+--------------------------------------------------------
+--  Ref Constraints for Table ORDERS_ARCHIVE
+--------------------------------------------------------
+
+  ALTER TABLE "MARTI"."ORDERS_ARCHIVE" ADD FOREIGN KEY ("TID")
+	  REFERENCES "MARTI"."RTABLES" ("TID") ENABLE;
+  ALTER TABLE "MARTI"."ORDERS_ARCHIVE" ADD FOREIGN KEY ("ID")
+	  REFERENCES "MARTI"."EMPLOYEES" ("ID") ENABLE;
+  ALTER TABLE "MARTI"."ORDERS_ARCHIVE" ADD FOREIGN KEY ("MID")
+	  REFERENCES "MARTI"."MENU_ITEMS" ("MID") ENABLE;
+  ALTER TABLE "MARTI"."ORDERS_ARCHIVE" ADD FOREIGN KEY ("BILLID")
+	  REFERENCES "MARTI"."TABLE_BILL" ("BILLID") ENABLE;
+--------------------------------------------------------
+--  Ref Constraints for Table RESERVED_TABLE
+--------------------------------------------------------
+
+  ALTER TABLE "MARTI"."RESERVED_TABLE" ADD FOREIGN KEY ("TID")
+	  REFERENCES "MARTI"."RTABLES" ("TID") ENABLE;
+  ALTER TABLE "MARTI"."RESERVED_TABLE" ADD FOREIGN KEY ("ID")
+	  REFERENCES "MARTI"."EMPLOYEES" ("ID") ENABLE;
