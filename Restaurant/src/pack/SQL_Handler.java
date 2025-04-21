@@ -9,6 +9,8 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 import javax.swing.JOptionPane;
 import javax.swing.JTextField;
@@ -24,7 +26,6 @@ class SQL_Handler {
 	private static ResultSet result;
 	
 	private static String sqlQ;
-	private static String sql;
 	private static String sql_order;
 	private static String sql_employees;
 	private static String sql_MENU_ITEMS;
@@ -217,15 +218,15 @@ class SQL_Handler {
 			statement.setInt(1, id_table);
 			result = statement.executeQuery();
 			   
-		    sql = "{CALL PSTATUSA(?)}"; // The procedure for status of table = AVAILABLE!
+		    sqlQ = "{CALL PSTATUSA(?)}"; // The procedure for status of table = AVAILABLE!
 			   
-			statement = conn.prepareStatement(sql);
+			statement = conn.prepareStatement(sqlQ);
 		    statement.setInt(1, id_table);
 		    result = statement.executeQuery();
 			
-		    sql = "{CALL D_RESERVED_TABLE(?)}"; // The procedure for deleting the reservation!
+		    sqlQ = "{CALL D_RESERVED_TABLE(?)}"; // The procedure for deleting the reservation!
 			   
-			statement = conn.prepareStatement(sql);
+			statement = conn.prepareStatement(sqlQ);
 		    statement.setInt(1, id_table);
 		    result = statement.executeQuery();
 		    
@@ -301,9 +302,9 @@ class SQL_Handler {
 				
 			}
 			
-			sql = "{CALL PSTATUSB(?)}"; // The procedure for status of table = BUSY!
+			sqlQ = "{CALL PSTATUSB(?)}"; // The procedure for status of table = BUSY!
 			
-			statement = conn.prepareStatement(sql);
+			statement = conn.prepareStatement(sqlQ);
 			statement.setInt(1, id_table);
 			result = statement.executeQuery();
 			
@@ -374,6 +375,12 @@ class SQL_Handler {
 				
 			}
 			
+			if (billName==9999) {
+				JOptionPane.showMessageDialog(ReserveTable.tableframe, "Достигнали сте 9999 сметка, нужно е да изтриете архива, за да може програмата да работи правилно!", "Предопреждение!", JOptionPane.OK_OPTION);
+				ReserveTable.tableframe.dispose();
+				new RestaurantMain();
+			}
+			
 			String sql_table_bill = "{CALL P_TABLE_BILL(?)}"; //The insert procedure
 			
 			statement = conn.prepareStatement(sql_table_bill);
@@ -441,9 +448,9 @@ class SQL_Handler {
 		try {
 			Connection conn = DriverManager.getConnection(idbcURL,user,password);
 			
-			sql = "{CALL P_RTABLES(?,?)}"; //The insert procedure
+			sqlQ = "{CALL P_RTABLES(?,?)}"; //The insert procedure
 			
-			statement = conn.prepareStatement(sql);
+			statement = conn.prepareStatement(sqlQ);
 			statement.setString(1, strnumber);
 			statement.setString(2, status);
 			
@@ -543,10 +550,10 @@ class SQL_Handler {
 		try {
 			Connection conn = DriverManager.getConnection(idbcURL,user,password);
 		
-			sql = "SELECT STATUS FROM RTABLES "
+			sqlQ = "SELECT STATUS FROM RTABLES "
 					+ "WHERE TNAME = ? "; 
 			
-			statement = conn.prepareStatement(sql);
+			statement = conn.prepareStatement(sqlQ);
 			statement.setString(1, Role.lastClicktable);
 	        result = statement.executeQuery();
 	        
@@ -573,13 +580,13 @@ class SQL_Handler {
 		try {
 			Connection conn = DriverManager.getConnection(idbcURL,user,password);
 		
-			sql = "SELECT t.TNAME, t.status, e.password "
+			sqlQ = "SELECT t.TNAME, t.status, e.password "
 					+ "FROM reserved_table "
 					+ "JOIN RTABLES t ON reserved_table.tid = t.tid "
 					+ "JOIN employees e ON reserved_table.ID = e.ID "
 					+ "WHERE t.TNAME = ? "; 
 			
-			statement = conn.prepareStatement(sql);
+			statement = conn.prepareStatement(sqlQ);
 			statement.setString(1, Role.lastClicktable);
 	        result = statement.executeQuery();
 	        
@@ -691,12 +698,12 @@ class SQL_Handler {
 			
 			Connection 	conn = DriverManager.getConnection(idbcURL,user,password);
 			
-			sql = "{CALL D_ALLORDERS_ARCHIVE()}"; // The procedure for DELETING THE ARCHIVE!!!
-			statement = conn.prepareStatement(sql);
+			sqlQ = "{CALL D_ALLORDERS_ARCHIVE()}"; // The procedure for DELETING THE ARCHIVE!!!
+			statement = conn.prepareStatement(sqlQ);
 			result = statement.executeQuery();
 			
-			sql = "{CALL D_TABLE_BILL()}"; // The procedure for DELETING ALL BILLS!!!
-			statement = conn.prepareStatement(sql);
+			sqlQ = "{CALL D_TABLE_BILL()}"; // The procedure for DELETING ALL BILLS!!!
+			statement = conn.prepareStatement(sqlQ);
 			result = statement.executeQuery();
 			
 		} catch (SQLException e1) {
@@ -713,10 +720,10 @@ class SQL_Handler {
 			
 			Connection conn = DriverManager.getConnection(idbcURL,user,password);
 			
-			sql = "SELECT e.ID, e.FIRSTNAME, e.LASTNAME, e.EGN, e.PASSWORD, p.POS_NAME "
+			sqlQ = "SELECT e.ID, e.FIRSTNAME, e.LASTNAME, e.EGN, e.PASSWORD, p.POS_NAME "
 					+ "FROM EMPLOYEES e "
 					+ "JOIN positions p ON e.pos_id = p.pos_id ";
-			statement = conn.prepareStatement(sql);
+			statement = conn.prepareStatement(sqlQ);
 			result = statement.executeQuery();
 			
 			while (result.next()) {
@@ -750,12 +757,12 @@ class SQL_Handler {
 		
 		Connection conn = DriverManager.getConnection(idbcURL,user,password);
 		
-		sql = "SELECT t.TNAME "
+		sqlQ = "SELECT t.TNAME "
 				+ "FROM reserved_table "
 				+ "JOIN RTABLES t ON reserved_table.tid = t.tid "
 				+ "WHERE t.TNAME = ? "; 
 		
-		statement = conn.prepareStatement(sql);
+		statement = conn.prepareStatement(sqlQ);
 		statement.setString(1, Role.lastClicktable);
         result = statement.executeQuery();
         
@@ -766,8 +773,8 @@ class SQL_Handler {
 		
 		if (!(Role.lastClicktable.equals(table))) { //If the table is not in database!
 			
-			sql = "{CALL P_RESERVED_TABLE(?,?)}"; // The procedure for add table and waiter!!!
-			statement = conn.prepareStatement(sql);
+			sqlQ = "{CALL P_RESERVED_TABLE(?,?)}"; // The procedure for add table and waiter!!!
+			statement = conn.prepareStatement(sqlQ);
 			statement.setInt(1, id_table);
 			statement.setInt(2, stored_eid);
 			result = statement.executeQuery();
@@ -798,10 +805,10 @@ class SQL_Handler {
 			statement.setInt(2, id_item);
 		    result = statement.executeQuery();
 		    
-		    sql = "SELECT TID FROM RTABLES "
+		    sqlQ = "SELECT TID FROM RTABLES "
 					+ "WHERE TNAME = ? "; 
 			
-			statement = conn.prepareStatement(sql);
+			statement = conn.prepareStatement(sqlQ);
 			statement.setString(1, Role.lastClicktable);
 	        result = statement.executeQuery();
 	        
@@ -853,6 +860,42 @@ class SQL_Handler {
 		// TODO Auto-generated catch block
 		JOptionPane.showMessageDialog(ReserveTable.tableframe, "Няма избрано ID!", "Грешка", JOptionPane.OK_OPTION);
 	} 
+		
+	}
+	
+	static List<String> topOrders() {
+		
+		List<String> list = new ArrayList<>();
+		
+		try {
+			Connection conn = DriverManager.getConnection(idbcURL,user,password);
+		
+			sqlQ = "SELECT * FROM "
+					+ "(SELECT m.item AS item, COUNT(m.item) AS TOTAL_COUNT "
+					+ "FROM ORDERS_ARCHIVE a "
+					+ "JOIN menu_items m ON a.mid = m.mid "
+					+ "GROUP BY m.item "
+					+ "ORDER BY TOTAL_COUNT DESC) "
+					+ "WHERE ROWNUM <= 3";
+			
+			statement = conn.prepareStatement(sqlQ);
+			//statement.setString(1, ReserveTable.orderid.getText());
+			result = statement.executeQuery();
+			
+			while (result.next()) {
+				list.add(result.getString("item"));
+				
+			}
+		
+			conn.close();
+			
+		} catch (SQLException e1) {
+			
+			e1.printStackTrace();
+			JOptionPane.showMessageDialog(ReserveTable.tableframe, "SQL грешка!", "Грешка", JOptionPane.OK_OPTION);
+		}
+		
+		return list;
 		
 	}
 	
