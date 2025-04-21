@@ -2,6 +2,7 @@ package pack;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Cursor;
 import java.awt.Font;
 import java.awt.GridLayout;
@@ -20,8 +21,10 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.List;
 import javax.imageio.ImageIO;
 import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
@@ -70,7 +73,7 @@ class Role {
 	private JButton archivebtn;
 	private JButton archivedelbtn;
 	private JButton archiveemplobtn;
-	
+
 	static JScrollPane scroll;
 	private JScrollPane scroll_table;
 	
@@ -394,7 +397,7 @@ class Role {
 		Profilepanel.add(archiveemplobtn);
 		Profilepanel.add(archivedelbtn);
 		Profilepanel.add(archivebtn);
-	    Profilepanel.add(panel_reg);
+		Profilepanel.add(panel_reg);
 		Profilepanel.add(panel_boss);
 		
 	}
@@ -405,17 +408,24 @@ class Role {
 		
 		panel_waiter = new JPanel();
 		JLabel WaiterName = new JLabel();
+		JLabel label_logo = new JLabel();
+		ImageIcon logo = new ImageIcon("logo.png");
+		
 		WaiterName.setFont(RestaurantMain.font);
 		WaiterName.setText("Hello, " + RestaurantMain.username.getText());
 		WaiterName.setVerticalAlignment(JLabel.CENTER);
 		WaiterName.setHorizontalAlignment(JLabel.CENTER);
+		
+		label_logo.setIcon(logo);
+		label_logo.setBounds(570, 610, 600, 200);
+		
 		panel_waiter.setBackground(new Color (240,255,255)); //The color is azure
 		panel_waiter.setLayout(new BorderLayout());
 		panel_waiter.add(WaiterName);
 		panel_waiter.setBounds(0, 110, 200, 220);
 		
 		Profilepanel.add(panel_waiter);
-		
+		Profilepanel.add(label_logo);
 	}
 	
 	MouseListener click_HomeIcon = new MouseListener() {
@@ -454,11 +464,6 @@ class Role {
 	
 	void profile() {
 		
-		ImageIcon logo = new ImageIcon("logo.png");
-		JLabel logoframe = new JLabel();
-		logoframe.setIcon(logo);
-		logoframe.setBounds(650, 100, 500, 200);
-		
 		JPanel panel1 = new JPanel();
 		panel1.setBackground(Color.orange);
 		panel1.setBounds(0,0,1520,100);
@@ -478,7 +483,41 @@ class Role {
 		HomeIcon.addMouseListener(click_HomeIcon);
 		HomeIcon.setCursor(new Cursor(Cursor.HAND_CURSOR));
 		
-		Profilepanel.add(logoframe);
+		JPanel toppanel = new JPanel(); //panel for top ordered items(meals or drinks)!
+		
+		toppanel.setBounds(500, 110, 600, 200); 
+		toppanel.setBackground(Color.orange);
+		toppanel.setLayout(new BoxLayout(toppanel, BoxLayout.Y_AXIS));
+		
+		List<String> data = new ArrayList<>();
+		data = SQL_Handler.topOrders();
+		
+		String items = "";
+		
+		JLabel label_text = new JLabel("НАЙ-ПОРЪЧВАНИ:");
+		label_text.setFont(RestaurantMain.font);
+		label_text.setForeground(Color.WHITE);
+		
+		JLabel label_items = new JLabel();
+		label_items.setFont(new Font("Calibri", Font.BOLD, 20));
+		label_items.setForeground(Color.WHITE);
+		
+		int num = 1;
+		
+		for (String i : data) {
+			
+			items += " " +num +". "+ i;
+			num++;
+		}
+		
+		label_items.setText(items);
+		
+		label_text.setAlignmentX(Component.CENTER_ALIGNMENT);
+		label_items.setAlignmentX(Component.CENTER_ALIGNMENT);
+		toppanel.add(label_text);
+		toppanel.add(label_items);
+		
+		Profilepanel.add(toppanel);
 		Profilepanel.add(HomeIcon);
 		Profilepanel.add(menuframe);
 		Profilepanel.add(panel1);
@@ -532,7 +571,7 @@ class Role {
 			File[] files = dir.listFiles();
 	
 			if (files !=null) {
-				Arrays.sort(files, new Comparator<File>( ) {
+				Arrays.sort(files, new Comparator<File>( ) { //Sorting the files (tables name)
 
 					@Override
 					public int compare(File f1, File f2) {
