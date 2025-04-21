@@ -198,6 +198,7 @@ public class RestaurantMain {
 		frame.setSize(1520,1040);
 		frame.setResizable(false);
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);    
+		frame.setLocationRelativeTo(null); //To center the frame!
 		frame.setLayout(null);
 		cardPanel.setBounds(0, 0, 1520, 1040);
 		frame.add(cardPanel);
@@ -312,6 +313,8 @@ public class RestaurantMain {
 		@Override
 		public void mouseClicked(MouseEvent e) {
 			
+			try {
+			
 			if (role.flagtable == 1) { //Only the Boss have privilege to add more tables!
 				
 				ReserveTable.addtable();
@@ -322,7 +325,9 @@ public class RestaurantMain {
 			    Role.scroll.revalidate();
 			    Role.scroll.repaint();
 			}
-			
+			} catch (NullPointerException e1){
+				
+			}
 		}
 
 		@Override
@@ -356,9 +361,15 @@ public class RestaurantMain {
 		@Override
 		public void mouseClicked(MouseEvent e) {
 			
+			try {
+			
 			if (role.flagtable == 1) { //Only the Boss have privilege to delete tables!
 			ReserveTable.deltable();
 			
+			}
+			
+			} catch (NullPointerException e1) {
+				
 			}
 		}
 
