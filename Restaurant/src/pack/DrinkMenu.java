@@ -116,13 +116,15 @@ class DrinkMenu {
 		if (result == JFileChooser.APPROVE_OPTION) { //If the user selects an image, and clicks OK!
 			
 			File file = filechooser.getSelectedFile();
+			
 			text = JOptionPane.showInputDialog("Въведете име на ястието");
 			
 			try {
+				
 				do {
 					price = JOptionPane.showInputDialog("Въведете цена");
 					
-				} while (!price.matches("\\d+"));
+				} while (!price.matches("\\d+(\\.\\d*)?"));
 				
 			} catch (NullPointerException e){
 				
