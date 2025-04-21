@@ -119,10 +119,11 @@ class FoodMenu {
 			text = JOptionPane.showInputDialog("Въведете име на ястието");
 			
 			try {
+				
 				do {
 					price = JOptionPane.showInputDialog("Въведете цена");
 					
-				} while (!price.matches("\\d+"));
+				} while (!price.matches("\\d+(\\.\\d*)?"));
 				
 			} catch (NullPointerException e){
 				
