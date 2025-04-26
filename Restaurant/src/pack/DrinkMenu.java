@@ -137,7 +137,7 @@ class DrinkMenu {
 				File savedfile = saveImage(file);
 				
 				if (savedfile != null) {
-					displayImage(savedfile, text);
+					displayImage(savedfile);
 				}
 			}
 		}
@@ -167,7 +167,7 @@ class DrinkMenu {
 		
 		if (dir.exists()) {
 			for (File file : dir.listFiles() ) {
-				displayImage(file, file.getName());
+				displayImage(file);
 			}
 		}
 	}
@@ -214,8 +214,8 @@ class DrinkMenu {
 			dotIndex = file.getName().lastIndexOf(".");
 			fileNameToSearch = file.getName().substring(0, dotIndex-1);
 			// replaceAll("\\s+", "") - remove all spaces!
-			if (fileNameToSearch.replaceAll("\\s+", "").toLowerCase().contains(search.getText().toLowerCase())) {
-				displayImage(file,file.getName());
+			if (fileNameToSearch.toLowerCase().contains(search.getText().toLowerCase())) {
+				displayImage(file);
 				
 			}
 		}
@@ -289,7 +289,7 @@ class DrinkMenu {
 			}
 	}
 	
-	private void displayImage(File file, String text) {
+	private void displayImage(File file) {
 		
 		try {
 			
@@ -346,13 +346,6 @@ class DrinkMenu {
 			e.printStackTrace();
 		}
 		
-		orderDrink(fileNameToSearch); //Method for ordering from the drink menu, by clicking the image of the meal!
+		orderDrink(fileNameToSearch); //Method for ordering from the drink menu, by clicking the image of the drink!
 	}
 }
-
-
-
-	
-
-	
-
