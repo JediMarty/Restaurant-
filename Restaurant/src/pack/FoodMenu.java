@@ -214,7 +214,7 @@ class FoodMenu {
 			dotIndex = file.getName().lastIndexOf(".");
 			fileNameToSearch = file.getName().substring(0, dotIndex-1);
 			// replaceAll("\\s+", "") - remove all spaces!
-			if (fileNameToSearch.replaceAll("\\s+", "").toLowerCase().contains(search.getText().toLowerCase())) {
+			if (fileNameToSearch.toLowerCase().contains(search.getText().toLowerCase())) {
 				displayImage(file);
 				
 			}
