@@ -4,6 +4,7 @@ import java.awt.CardLayout;
 import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.Font;
+import java.awt.Image;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
@@ -30,6 +31,7 @@ public class RestaurantMain {
 	private ImageIcon img_addtable1;
 	private ImageIcon img_addtable2;
 	private ImageIcon delIcon;
+	private ImageIcon img_logout;
 	static Font font;
 	static JTextField username;
 	static JPasswordField password;
@@ -42,7 +44,7 @@ public class RestaurantMain {
 	private JButton button_del_table;
 	static JPanel Homepanel;
 	private JPanel panel1;
-	private JPanel panel_login;
+	static JPanel panel_login;
 	private JLabel logoframe;
 	private JLabel label_user;
 	private JLabel label_pass;
@@ -67,17 +69,18 @@ public class RestaurantMain {
 		menuframe = new JLabel();
 		username = new JTextField();
 		password = new JPasswordField();
-		logo = new ImageIcon("logo.png");
-		img_food1 = new ImageIcon("food.png");
-		img_food2 = new ImageIcon("food2.png");
-		img_drinks1 = new ImageIcon("drinks1.png");
-		img_drinks2= new ImageIcon("drinks2.png");
-		img_waiter1 = new ImageIcon("waiter1.png");
-		img_waiter2 = new ImageIcon("waiter2.png");
-		img_addtable1 = new ImageIcon("iconaddtable1.png");
-		img_addtable2 = new ImageIcon("iconaddtable2.png");
-		menufr = new ImageIcon("menuframe.png");
-		delIcon = new ImageIcon("icondeltable2.png");
+		logo = new ImageIcon("E:\\eclipse\\eclipse workspace\\Restaurant\\src\\logo.png");
+		img_food1 = new ImageIcon("E:\\eclipse\\eclipse workspace\\Restaurant\\src\\food.png");
+		img_food2 = new ImageIcon("E:\\eclipse\\eclipse workspace\\Restaurant\\src\\food2.png");
+		img_drinks1 = new ImageIcon("E:\\eclipse\\eclipse workspace\\Restaurant\\src\\drinks1.png");
+		img_drinks2= new ImageIcon("E:\\eclipse\\eclipse workspace\\Restaurant\\src\\drinks2.png");
+		img_waiter1 = new ImageIcon("E:\\eclipse\\eclipse workspace\\Restaurant\\src\\waiter1.png");
+		img_waiter2 = new ImageIcon("E:\\eclipse\\eclipse workspace\\Restaurant\\src\\waiter2.png");
+		img_addtable1 = new ImageIcon("E:\\eclipse\\eclipse workspace\\Restaurant\\src\\iconaddtable1.png");
+		img_addtable2 = new ImageIcon("E:\\eclipse\\eclipse workspace\\Restaurant\\src\\iconaddtable2.png");
+		menufr = new ImageIcon("E:\\eclipse\\eclipse workspace\\Restaurant\\src\\menuframe.png");
+		delIcon = new ImageIcon("E:\\eclipse\\eclipse workspace\\Restaurant\\src\\icondeltable2.png");
+		img_logout = new ImageIcon("E:\\eclipse\\eclipse workspace\\Restaurant\\src\\delete.png");
 		FoodIcon = new JButton();
 		DrinkIcon = new JButton();
 		WaiterIcon = new JButton();
@@ -87,7 +90,7 @@ public class RestaurantMain {
 		//...............................//
 		
 		logoframe.setIcon(logo);
-		logoframe.setBounds(650, 100, 500, 200);
+		logoframe.setBounds(520, 100, 500, 200);
 		
 		panel1.setBackground(Color.orange);
 		panel1.setBounds(0,0,1520,100);
@@ -121,9 +124,10 @@ public class RestaurantMain {
 		
 	});
 		
+		ImageIcon image_logout = new ImageIcon(img_logout.getImage().getScaledInstance(30, 30, Image.SCALE_SMOOTH));
 		logoutbtn = new JButton();
-		logoutbtn.setText("ИЗЛЕЗ");
-		logoutbtn.setBounds(70,520,220,50);
+		logoutbtn.setIcon(image_logout);
+		logoutbtn.setBounds(905, 73, 25, 20);
 		logoutbtn.setFocusPainted(false);
 		logoutbtn.setBorderPainted(false);
 		logoutbtn.setContentAreaFilled(false);
@@ -138,7 +142,6 @@ public class RestaurantMain {
 		panel_login.add(label_pass);
 		panel_login.add(password);
 		panel_login.add(loginbtn);
-		panel_login.add(logoutbtn);
 		
 		menuframe.setIcon(menufr);
 		menuframe.setBounds(500,0,500,100);
@@ -160,7 +163,7 @@ public class RestaurantMain {
 		
 		WaiterIcon.setIcon(img_waiter1);
 		WaiterIcon.setBorderPainted(false);
-		WaiterIcon.setBounds(850, 15, 70, 70);
+		WaiterIcon.setBounds(850, 15, 60, 70);
 		WaiterIcon.setContentAreaFilled(false);
 		WaiterIcon.addMouseListener(click_WaiterIcon);
 		WaiterIcon.setCursor(new Cursor(Cursor.HAND_CURSOR));
@@ -185,6 +188,7 @@ public class RestaurantMain {
 		Homepanel.add(WaiterIcon);
 		Homepanel.add(DrinkIcon);
 		Homepanel.add(FoodIcon);
+		Homepanel.add(logoutbtn);
 		Homepanel.add(menuframe);
 		Homepanel.add(panel1);
 		Homepanel.add(panel_login);
@@ -193,11 +197,14 @@ public class RestaurantMain {
 		Homepanel.setBackground(Color.WHITE);
 		cardPanel.add(Homepanel); 
 	
+		ImageIcon frameicon = new ImageIcon("E:\\eclipse\\eclipse workspace\\Restaurant\\src\\table.png");
+		
 		//The Window
 		frame.setTitle("Table Reserved");
 		frame.setSize(1520,1040);
 		frame.setResizable(false);
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);    
+		frame.setIconImage(frameicon.getImage());
 		frame.setLocationRelativeTo(null); //To center the frame!
 		frame.setLayout(null);
 		cardPanel.setBounds(0, 0, 1520, 1040);
@@ -278,8 +285,11 @@ public class RestaurantMain {
 
 		@Override
 		public void mouseClicked(MouseEvent e) {
+		
+			if (Role.flagprofile == 1) {
 			switch_the_scene();
 			
+			}
 		}
 
 		@Override
@@ -412,11 +422,13 @@ public class RestaurantMain {
 			cardPanel.remove(Role.Profilepanel);
 			Homepanel.remove(Role.scroll);		
 			Role.lastClicktable = "0";
-			
+			role.flagtable = 0;
 			
 			} catch (NullPointerException e1){
 				
 			}
+			
+			Homepanel.add(panel_login);
 			
 			frame.revalidate();
 			frame.repaint();
