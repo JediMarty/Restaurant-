@@ -25,7 +25,7 @@ class Login {
 		
 		} catch (NoSuchAlgorithmException e) {
 			// TODO Auto-generated catch block
-			e.printStackTrace();
+			
 		}
 		
 		SQL_Handler.loginsql(resultHashedPass);
