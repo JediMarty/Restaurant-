@@ -27,9 +27,9 @@ import javax.swing.table.DefaultTableModel;
 
 class SQL_Handler {
 
-	private static String idbcURL = "jdbc:oracle:thin:@localhost:1521:XE";
-	private static String user = "marti";
-	private static String password = "marti";
+	private static String idbcURL = "";
+	private static String user = "";
+	private static String password = "";
 	
 	private static PreparedStatement statement;
 	private static ResultSet result;
